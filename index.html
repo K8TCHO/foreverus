@@ -767,7 +767,13 @@ async function reqC(){
 
 async function reqS(){
   if(scr){stopScr();return}
-  if(!navigator.mediaDevices||!navigator.mediaDevices.getDisplayMedia){toast(t('toast_scr_nosupport'),'err');return}
+  var proto=window.location.protocol;
+  var isSecure=proto==='https:'||window.location.hostname==='localhost'||window.location.hostname==='127.0.0.1';
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getDisplayMedia){
+    if(!isSecure){toast('HTTPS requis pour le partage d\'ecran. URL: '+window.location.href,'err')}
+    else{toast(t('toast_scr_nosupport')+' (Firefox: aller dans about:config et activer media.getusermedia.screensharing.enabled)','err')}
+    return
+  }
   try{
     SS=await navigator.mediaDevices.getDisplayMedia({video:{cursor:'always',width:{ideal:1920,min:1280},height:{ideal:1080,min:720},frameRate:{ideal:60,min:30}},audio:AQ});
     scr=true;$('bS').className='b on';$('bS').querySelector('.l').textContent='Ecran ON';$('scrB').classList.add('on');$('pip').classList.add('scr');$('lV').srcObject=SS;$('pipE').style.display='none';
