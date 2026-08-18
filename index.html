@@ -805,9 +805,9 @@ async function createRoom(){
   try{
     host=true;MID=rm+'-host';LS=new MediaStream();toCa();
     setLd(b,false);
-    $('cbCode').textContent=rm;$('cbPwd').textContent='';$('codeBadge').classList.add('on');
+    $('cbCode').textContent=rm;$('codeBadge').classList.add('on');
     $('wCd').textContent=rm;$('wNm').textContent=rn;$('sts').style.display='flex';
-    $('wO').style.display='none';$('ov').classList.add('on');
+    $('wO').style.display='flex';$('ov').classList.remove('on');
     $('oN').textContent=t('overlay_waiting');$('oS').textContent=t('overlay_share');
     P=new Peer(MID,IC);
     P.on('open',function(){toast(t('toast_room_create')+' '+rn,'ok')});
