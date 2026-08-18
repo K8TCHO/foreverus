@@ -839,29 +839,16 @@ function doJoin(){
 }
 
 function doDC(c){DC=c;
-  var _nc=Date.now();var _ch=cryR(8);
   c.on('open',function(){
     if(!host){
-      c.send({type:'challenge',ch:_ch,ts:_nc});
+      c.send({type:'auth',token:SECRET});
     }
   });
   c.on('data',function(d){
   if(!d||typeof d!=='object')return;
-  if(d.type==='challenge'&&!host){
-    var sol=0;var raw=d.ch+SECRET;
-    for(var i=0;i<1000;i++){var h=0;for(var j=0;j<raw.length;j++){h=((h<<5)-h)+raw.charCodeAt(j);h|=0}sol++;raw=raw+h.toString(36)}
-    c.send({type:'auth',token:SECRET,sol:sol,ch:d.ch});
-    return;
-  }
   if(d.type==='auth'){
     if(d.token===SECRET){
-      var _ok=true;
-      if(d.ch===_ch&&d.sol>0){
-        var _raw=d.ch+SECRET;var _v=0;
-        for(var k=0;k<d.sol;k++){var _h=0;for(var l=0;l<_raw.length;l++){_h=((_h<<5)-_h)+_raw.charCodeAt(l);_h|=0}_v++;_raw=_raw+_h.toString(36)}
-        _ok=_v===d.sol;
-      }
-      if(_ok){CONNECTED_PEERS[c.peer]=true;toast(t('toast_connect'),'ok')}
+      CONNECTED_PEERS[c.peer]=true;toast(t('toast_connect'),'ok');
     }
     return;
   }
