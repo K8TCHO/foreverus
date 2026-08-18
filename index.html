@@ -785,10 +785,12 @@ async function reqS(){
     tr.onended=function(){stopScr()};
     toast(t('toast_scr_on'),'ok')
   }catch(e){
-    if(window.location.protocol==='file:'){
+    if(e.name==='NotAllowedError'){
+      toast(t('toast_scr_err'),'err')
+    }else if(window.location.protocol==='file:'){
       toast(t('toast_scr_needhost'),'err');
     }else{
-      toast(t('toast_scr_err'),'err')
+      toast(t('toast_scr_nosupport'),'err')
     }
   }
 }
@@ -802,12 +804,13 @@ async function createRoom(){
   var b=$('bCreate');setLd(b,true);
   try{
     host=true;MID=rm+'-host';LS=new MediaStream();toCa();
+    setLd(b,false);
     $('cbCode').textContent=rm;$('cbPwd').textContent='';$('codeBadge').classList.add('on');
     $('wCd').textContent=rm;$('wNm').textContent=rn;$('sts').style.display='flex';
     $('wO').style.display='none';$('ov').classList.add('on');
     $('oN').textContent=t('overlay_waiting');$('oS').textContent=t('overlay_share');
     P=new Peer(MID,IC);
-    P.on('open',function(){toast(t('toast_room_create')+' '+rn,'ok');setLd(b,false)});
+    P.on('open',function(){toast(t('toast_room_create')+' '+rn,'ok')});
     P.on('call',function(c){
       if(c.metadata&&c.metadata.token!==SECRET){c.close();return}
       CC=c;c.answer(LS);c.on('stream',onR);c.on('close',onDC);c.on('error',function(e){console.error(e)});if(c.peerConnection)doSt(c.peerConnection)
@@ -826,6 +829,7 @@ function doJoin(){
   var b=$('bDoJoin');setLd(b,true);
   try{
     host=false;MID=gId();LS=new MediaStream();toCa();
+    setLd(b,false);hideJoin();
     $('cbCode').textContent=rm;$('cbPwd').textContent='';$('codeBadge').classList.add('on');
     $('sts').style.display='flex';
     P=new Peer(MID,IC);
@@ -834,8 +838,8 @@ function doJoin(){
       var c=P.connect(h,{reliable:true,serialization:'binary'});
       doDC(c);
       var cl=P.call(h,LS,{metadata:{quality:cQ,token:SECRET}});
-      if(cl){CC=cl;cl.on('stream',onR);cl.on('close',onDC);cl.on('error',function(e){console.error(e)});if(cl.peerConnection)doSt(cl.peerConnection);toast(t('toast_connect'),'ok');setLd(b,false);hideJoin()}
-      else{toast(t('toast_noroom'),'err');setLd(b,false)}
+      if(cl){CC=cl;cl.on('stream',onR);cl.on('close',onDC);cl.on('error',function(e){console.error(e)});if(cl.peerConnection)doSt(cl.peerConnection);toast(t('toast_connect'),'ok')}
+      else{toast(t('toast_noroom'),'err')}
     });
     P.on('call',function(c){CC=c;c.answer(LS);c.on('stream',onR);c.on('close',onDC)});
     P.on('disconnected',function(){$('stP').className='st w';$('stT').textContent=t('status_wait')});
@@ -903,7 +907,7 @@ function setQ(q){cQ=q;document.querySelectorAll('.qo').forEach(function(e){e.cla
 function hangUp(){if(CC){CC.close();CC=null}if(P){P.destroy();P=null}if(LS){LS.getTracks().forEach(function(t){t.stop()});LS=null}if(SS){SS.getTracks().forEach(function(t){t.stop()});SS=null}stopT();if(rV){rV.srcObject=null;rV.remove();rV=null}toLob();$('wT').textContent=t('wait_title');$('wS').textContent=t('wait_share');toast(t('toast_hangup'),'ok')}
 
 function toast(m,t){var e=$('toast');e.textContent=m;e.className='T '+(t||'')+' on';setTimeout(function(){e.classList.remove('on')},3500)}
-function copyCd(){var cd=$('wCd').textContent;var nm=$('wNm').textContent;navigator.clipboard.writeText('Salle: '+nm+'\nCode: '+cd).then(function(){toast(t('toast_copy'),'ok')}).catch(function(){toast(t('toast_copy_err'),'err')})}
+function copyCd(){var cd=$('wCd')?$('wCd').textContent:'';if(!cd)cd=$('cbCode')?$('cbCode').textContent:'';var nm=$('wNm')?$('wNm').textContent:'';if(!cd){toast(t('toast_copy_err'),'err');return}var txt=nm?'Salle: '+nm+'\nCode: '+cd:cd;navigator.clipboard.writeText(txt).then(function(){toast(t('toast_copy'),'ok')}).catch(function(){toast(t('toast_copy_err'),'err')})}
 function shareCd(){var cd=$('wCd').textContent;var nm=$('wNm').textContent;if(navigator.share){navigator.share({title:nm,text:'Salle: '+nm+'\nCode: '+cd,url:window.location.href}).catch(function(){})}else{copyCd()}}
 document.addEventListener('click',function(e){if(!e.target.closest('#qm')&&!e.target.closest('#bQ'))$('qm').classList.remove('on')});
 
