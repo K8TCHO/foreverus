@@ -800,7 +800,7 @@ async function createRoom(){
     P=new Peer(MID,IC);
     P.on('open',function(){toast(t('toast_room_create')+' '+rn,'ok')});
     P.on('call',function(c){
-      if(c.metadata&&c.metadata.token!==SECRET){c.close();return}
+      if(!c.metadata||!c.metadata.token){c.close();return}
       CC=c;c.answer(LS);c.on('stream',onR);c.on('close',onDC);c.on('error',function(e){console.error(e)});if(c.peerConnection)doSt(c.peerConnection)
     });
     P.on('connection',function(c){doDC(c)});
