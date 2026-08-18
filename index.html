@@ -907,8 +907,8 @@ function setQ(q){cQ=q;document.querySelectorAll('.qo').forEach(function(e){e.cla
 function hangUp(){if(CC){CC.close();CC=null}if(P){P.destroy();P=null}if(LS){LS.getTracks().forEach(function(t){t.stop()});LS=null}if(SS){SS.getTracks().forEach(function(t){t.stop()});SS=null}stopT();if(rV){rV.srcObject=null;rV.remove();rV=null}toLob();$('wT').textContent=t('wait_title');$('wS').textContent=t('wait_share');toast(t('toast_hangup'),'ok')}
 
 function toast(m,t){var e=$('toast');e.textContent=m;e.className='T '+(t||'')+' on';setTimeout(function(){e.classList.remove('on')},3500)}
-function copyCd(){var cd=$('wCd')?$('wCd').textContent:'';if(!cd)cd=$('cbCode')?$('cbCode').textContent:'';var nm=$('wNm')?$('wNm').textContent:'';if(!cd){toast(t('toast_copy_err'),'err');return}var txt=nm?'Salle: '+nm+'\nCode: '+cd:cd;navigator.clipboard.writeText(txt).then(function(){toast(t('toast_copy'),'ok')}).catch(function(){toast(t('toast_copy_err'),'err')})}
-function shareCd(){var cd=$('wCd').textContent;var nm=$('wNm').textContent;if(navigator.share){navigator.share({title:nm,text:'Salle: '+nm+'\nCode: '+cd,url:window.location.href}).catch(function(){})}else{copyCd()}}
+function copyCd(){var cd=$('wCd')?$('wCd').textContent:'';if(!cd)cd=$('cbCode')?$('cbCode').textContent:'';if(!cd){toast(t('toast_copy_err'),'err');return}navigator.clipboard.writeText(cd).then(function(){toast(t('toast_copy'),'ok')}).catch(function(){toast(t('toast_copy_err'),'err')})}
+function shareCd(){var cd=$('wCd').textContent;var nm=$('wNm').textContent;if(navigator.share){navigator.share({title:nm,text:'Code: '+cd,url:window.location.href}).catch(function(){})}else{copyCd()}}
 document.addEventListener('click',function(e){if(!e.target.closest('#qm')&&!e.target.closest('#bQ'))$('qm').classList.remove('on')});
 
 document.addEventListener('keydown',function(e){
@@ -924,7 +924,6 @@ document.addEventListener('keydown',function(e){
 });
 
 document.querySelectorAll('.SB .b,.LB .B,.PM .B,.WT .cb').forEach(function(b){b.addEventListener('mousedown',ripple)});
-$('rI').value=Math.random().toString(36).substr(2,8).toUpperCase();
 
 if(window.location.protocol==='file:'||window.location.hostname==='localhost'||window.location.hostname==='127.0.0.1')$('serverHelper').style.display='block';
 
