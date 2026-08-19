@@ -735,15 +735,20 @@ async function reqM(){
   triggerSync();
 }
 
+function camGet(){
+  var list=['1080','720','480','360'],i=0;
+  function next(){if(i>=list.length)return Promise.reject(new Error('no'));var v=VQ[list[i++]];return navigator.mediaDevices.getUserMedia({video:v}).catch(next)}
+  return next();
+}
 async function reqC(){
   if(scr){toast('Arrete le partage d\'ecran d\'abord','err');return}
   if(cam){cam=false;if(camS){camS.getTracks().forEach(function(t){t.stop()});camS=null}if(LS)LS.getVideoTracks().forEach(function(t){LS.removeTrack(t)});$('lV').srcObject=LS;$('pipE').style.display='flex';$('bC').className='b off';$('bC').querySelector('.l').textContent=t('sb_cam_off');$('iC').innerHTML=cOff;triggerSync();return}
   var s;
   if(camGranted){
-    try{s=await navigator.mediaDevices.getUserMedia({video:VQ[cQ]})}catch(e){toast('Camera refusee','err');return}
+    try{s=await camGet()}catch(e){toast('Camera refusee','err');return}
   }else{
     if(!await askP(t('perm_cam_title'),t('perm_cam_desc'),'cam','<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#a8a0ff" stroke-width="1.8" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>'))return;
-    try{s=await navigator.mediaDevices.getUserMedia({video:VQ[cQ]})}catch(e){toast(t('toast_cam_err'),'err');return}
+    try{s=await camGet()}catch(e){toast(t('toast_cam_err'),'err');return}
     camGranted=true;
   }
   if(!LS)LS=new MediaStream();
@@ -849,7 +854,6 @@ function doDC(c){DC=c;PEER_ID=c.peer;
     if(d.token===SECRET){if(!CONNECTED_PEERS[c.peer]){CONNECTED_PEERS[c.peer]=true;toast(t('toast_connect'),'ok')}}
     return;
   }
-  if(!CONNECTED_PEERS[c.peer])return;
   var mx=500;
   if(d.t==='chat'&&typeof d.m==='string'&&d.m.length<mx&&typeof d.n==='string'&&d.n.length<30){addM(d.m,'recv',d.n)}
   else if(d.t==='react'&&typeof d.e==='string'&&d.e.length<8){flRx(d.e)}
