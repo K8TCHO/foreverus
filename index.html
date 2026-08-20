@@ -6,7 +6,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>ForeverUs ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã¢â‚¬â€</title>
+<title>ForeverUs ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
@@ -335,7 +335,9 @@ MN{flex:1;display:flex;overflow:hidden;position:relative}
 .SCRV.on{display:flex}
 .SCRV video{width:100%;height:100%;object-fit:contain}
 .SCRV .svc{position:absolute;top:14px;right:14px;width:42px;height:42px;border-radius:13px;border:none;background:rgba(255,255,255,.1);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
-.ver{display:inline-block;margin-top:10px;padding:4px 12px;border-radius:99px;background:rgba(255,92,138,.12);border:1px solid rgba(255,92,138,.35);color:var(--ac2);font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase}
+.ver{display:inline-block;margin-top:10px;padding:4px 12px;border-radius:99px;background:rgba(255,92,138,.12);border:1px solid rgba(255,92,138,.35);color:var(--ac2);font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;touch-action:manipulation}
+#dbg{position:absolute;left:8px;bottom:74px;z-index:60;background:rgba(0,0,0,.88);color:#4fef7f;font:8.5px/1.5 'Courier New',monospace;padding:6px 8px;border-radius:6px;display:none;max-width:94%;white-space:pre-wrap;pointer-events:none;border:1px solid rgba(255,255,255,.08)}
+#dbg.on{display:block}
 @media(max-width:640px){
   HD{padding:8px 12px;gap:8px}
   HD .mk{width:30px;height:30px;border-radius:9px}
@@ -390,11 +392,11 @@ MN{flex:1;display:flex;overflow:hidden;position:relative}
     <h2>ForeverUs</h2>
     <div class="lg-sub">Choisissez votre langue</div>
     <div class="opts">
-      <button onclick="setLang('fr')"><div class="flag">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¡Ãƒâ€šÃ‚Â«ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¡Ãƒâ€šÃ‚Â·</div><div class="lname">Francais</div><div class="lcode">FR</div></button>
-      <button onclick="setLang('en')"><div class="flag">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¡Ãƒâ€šÃ‚Â§</div><div class="lname">English</div><div class="lcode">EN</div></button>
-      <button onclick="setLang('es')"><div class="flag">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¡Ãƒâ€šÃ‚ÂªÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¡Ãƒâ€šÃ‚Â¸</div><div class="lname">Espanol</div><div class="lcode">ES</div></button>
+      <button onclick="setLang('fr')"><div class="flag">ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â«ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â·</div><div class="lname">Francais</div><div class="lcode">FR</div></button>
+      <button onclick="setLang('en')"><div class="flag">ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§</div><div class="lname">English</div><div class="lcode">EN</div></button>
+      <button onclick="setLang('es')"><div class="flag">ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂªÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸</div><div class="lname">Espanol</div><div class="lcode">ES</div></button>
     </div>
-    <div class="ver" id="verL"></div>
+    <div class="ver" id="verL" onclick="tapVer()"></div>
   </div>
 </div>
 
@@ -453,7 +455,7 @@ MN{flex:1;display:flex;overflow:hidden;position:relative}
         <h1 id="lobName">-</h1>
         <div class="sub" data-i18n="welcome_sub">Appel video prive haute qualite</div>
         <p class="tag" data-i18n="tagline">Parce que chaque film regarde ensemble est une preuve d'amour de plus</p>
-        <div class="ver" id="verTxt"></div>
+        <div class="ver" id="verTxt" onclick="tapVer()"></div>
       </div>
       <div class="form">
         <div class="fg"><label data-i18n="label_room_name">Nom de la salle</label><input type="text" id="roomName" data-i18n-ph="placeholder_room_name" placeholder="Ex: movie, game, love..." maxlength="20" autocomplete="off"></div>
@@ -473,12 +475,12 @@ MN{flex:1;display:flex;overflow:hidden;position:relative}
       <div class="feats">
         <div class="ft"><span style="background:rgba(255,92,138,.1)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--ac2)" stroke-width="2" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></span><span data-i18n="feat_video">1080p 60fps</span></div>
         <div class="ft"><span style="background:rgba(255,92,138,.1)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--ac)" stroke-width="2" stroke-linecap="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/></svg></span><span data-i18n="feat_voice">Voix stereo HD</span></div>
-        <div class="ft"><span style="background:rgba(0,232,157,.1)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--grn)" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></span><span data-i18n="feat_screen">Ecran 1080p60</span></div>
+        <div class="ft"><span style="background:rgba(0,232,157,.1)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--grn)" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></span><span data-i18n="feat_screen">Ecran HD</span></div>
         <div class="ft"><span style="background:rgba(255,92,138,.1)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--gld)" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></span><span data-i18n="feat_chat">Chat prive</span></div>
       </div>
-      <div class="credit" data-i18n="credit">ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã¢â‚¬â€ Fait avec tout mon amour pour Victoria</div>
+      <div class="credit" data-i18n="credit">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â Fait avec tout mon amour pour Victoria</div>
       <div id="serverHelper" style="display:none;margin-top:4px;padding:10px 14px;background:rgba(255,68,102,.06);border:1px solid rgba(255,68,102,.15);border-radius:10px;text-align:center;width:100%;max-width:420px">
-        <div style="font-size:10px;color:var(--red);font-weight:700;margin-bottom:6px" data-i18n="server_warn">ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¡Ãƒâ€šÃ‚Â  Partage d'ecran necessite localhost</div>
+        <div style="font-size:10px;color:var(--red);font-weight:700;margin-bottom:6px" data-i18n="server_warn">ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â  Partage d'ecran necessite localhost</div>
         <button class="B BG" onclick="launchServer()" style="width:100%;padding:10px;font-size:12px">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
           <span data-i18n="btn_server">Lancer le serveur local</span>
@@ -553,6 +555,7 @@ MN{flex:1;display:flex;overflow:hidden;position:relative}
       </div>
       <div class="STS" id="sts" style="display:none"><div class="s" id="sR">-</div><div class="s" id="sF">-</div><div class="s" id="sK">-</div></div>
       <div class="PILL" id="vSP" onclick="viewScr()"><span class="pd"></span><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/></svg>ECRAN DIRECT</div>
+    <div id="dbg"></div>
     </div>
 
     <div class="SCRV" id="scrV"><button class="svc" onclick="viewScrC()">&#10005;</button><video id="svV" autoplay playsinline></video></div>
@@ -601,12 +604,12 @@ MN{flex:1;display:flex;overflow:hidden;position:relative}
       </button>
       <div class="sep"></div>
       <div class="rx">
-        <button onclick="sendRx('ÃƒÆ’Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒâ€šÃ‚Â¤ÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â')" title="Coeur">ÃƒÆ’Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒâ€šÃ‚Â¤ÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â</button>
-        <button onclick="sendRx('ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸Ãƒâ€¹Ã…â€œÃƒâ€šÃ‚Â')" title="Amour">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸Ãƒâ€¹Ã…â€œÃƒâ€šÃ‚Â</button>
-        <button onclick="sendRx('ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒâ€šÃ‚Â¥')" title="Feu">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒâ€šÃ‚Â¥</button>
-        <button onclick="sendRx('ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸Ãƒâ€¹Ã…â€œÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡')" title="rire">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸Ãƒâ€¹Ã…â€œÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡</button>
-        <button onclick="sendRx('ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“Ãƒâ€šÃ‚Â')" title="Like">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“Ãƒâ€šÃ‚Â</button>
-        <button onclick="sendRx('ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¹')" title="Bisou">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¹</button>
+        <button onclick="sendRx('ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¤ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â')" title="Coeur">ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¤ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â</button>
+        <button onclick="sendRx('ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¹ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â')" title="Amour">ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¹ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â</button>
+        <button onclick="sendRx('ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥')" title="Feu">ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥</button>
+        <button onclick="sendRx('ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¹ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡')" title="rire">ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¹ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡</button>
+        <button onclick="sendRx('ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¹Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â')" title="Like">ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¹Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â</button>
+        <button onclick="sendRx('ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¹')" title="Bisou">ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¹</button>
       </div>
       <div class="sep"></div>
       <button class="b end" onclick="hangUp()">
@@ -636,7 +639,7 @@ fr:{
   label_name:'Ton nom',label_pwd:'Mot de passe',
   placeholder_name:'Choisis ton pseudo',placeholder_room_name:'Ex: movie, game, love...',btn_continue:'Continuer',label_room_name:'Nom de la salle',
   btn_create:'Creer la salle',btn_join:'Rejoindre une salle',btn_or:'ou',
-  feat_video:'1080p 60fps',feat_voice:'Voix stereo HD',feat_screen:'Ecran 1080p60',feat_chat:'Chat prive',
+  feat_video:'1080p 60fps',feat_voice:'Voix stereo HD',feat_screen:'Ecran HD',feat_chat:'Chat prive',
   server_warn:'Partage d\'ecran necessite localhost',btn_server:'Lancer le serveur local',server_hint:'Ouvre http://localhost:8080 dans Chrome',
   perm_title:'Autorisation',btn_cancel:'Annuler',btn_allow:'Autoriser',
   badge_room:'Salle',badge_pwd:'Mdp',btn_copy:'Copier',
@@ -666,7 +669,7 @@ fr:{
   overlay_waiting:'En attente...',overlay_share:'Partage le code pour te rejoindre',
   connected:'Connecte',disconnected:'Deconnecte',
   msg_title:'Un message pour toi',msg_close:'Fermer',
-  msg_p1:"<p><em>Ce site, je l'ai cr\u00e9e pour toi.</em></p><p>Pour qu'on ait notre petit coin \u00e0 nous. Un endroit o\u00f9 le temps s'arr\u00eate un peu, o\u00f9 la distance dispara\u00eet, et o\u00f9 il ne reste plus qu'une chose : <strong>nous deux.</strong></p><p>Je l'ai cr\u00e9\u00e9 pour qu'on puisse partager nos films, nos s\u00e9ries, nos rires et m\u00eame nos silences complices. Pour qu'\u00e0 travers un \u00e9cran, on puisse vivre les m\u00eames \u00e9motions au m\u00eame moment, comme si on \u00e9tait blottis l'un contre l'autre, sur le m\u00eame canap\u00e9.</p><p>Chaque film qu'on regardera ici deviendra un souvenir. Chaque s\u00e9rie qu'on encha\u00eenera deviendra une histoire de plus qu'on aura v\u00e9cue ensemble.</p><p>Parce qu'au fond, peu importe ce qu'on regarde. <strong>L'important, c'est toi, \u00e0 l'autre bout de l'\u00e9cran, avec moi.</strong></p><p>Je voulais qu'on ait toujours un endroit o\u00f9 se retrouver. Un petit refuge rien qu'\u00e0 nous, o\u00f9 la distance n'a plus vraiment d'importance et oÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¹ seul compte le moment qu'on partage.</p><p>Alors installe-toi, prends ton snack pr\u00e9f\u00e9r\u00e9, choisis ce qu'on va regarder\u2026</p><p>Et laisse-moi te faire voyager \u00e0 travers toutes ces histoires, en attendant de pouvoir les vivre pour de vrai, <strong>\u00e0 tes c\u00f4t\u00e9s.</strong></p><p class='sig'>Je t'aime, Victoria.</p><p>Et chaque film qu'on regardera ensemble sera un souvenir de plus, une histoire de plus, et une preuve de plus que tu es la personne avec qui je veux tout vivre :> <span class='heart-end'>&#10084;&#65039;</span></p>"
+  msg_p1:"<p><em>Ce site, je l'ai cr\u00e9e pour toi.</em></p><p>Pour qu'on ait notre petit coin \u00e0 nous. Un endroit o\u00f9 le temps s'arr\u00eate un peu, o\u00f9 la distance dispara\u00eet, et o\u00f9 il ne reste plus qu'une chose : <strong>nous deux.</strong></p><p>Je l'ai cr\u00e9\u00e9 pour qu'on puisse partager nos films, nos s\u00e9ries, nos rires et m\u00eame nos silences complices. Pour qu'\u00e0 travers un \u00e9cran, on puisse vivre les m\u00eames \u00e9motions au m\u00eame moment, comme si on \u00e9tait blottis l'un contre l'autre, sur le m\u00eame canap\u00e9.</p><p>Chaque film qu'on regardera ici deviendra un souvenir. Chaque s\u00e9rie qu'on encha\u00eenera deviendra une histoire de plus qu'on aura v\u00e9cue ensemble.</p><p>Parce qu'au fond, peu importe ce qu'on regarde. <strong>L'important, c'est toi, \u00e0 l'autre bout de l'\u00e9cran, avec moi.</strong></p><p>Je voulais qu'on ait toujours un endroit o\u00f9 se retrouver. Un petit refuge rien qu'\u00e0 nous, o\u00f9 la distance n'a plus vraiment d'importance et oÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¹ seul compte le moment qu'on partage.</p><p>Alors installe-toi, prends ton snack pr\u00e9f\u00e9r\u00e9, choisis ce qu'on va regarder\u2026</p><p>Et laisse-moi te faire voyager \u00e0 travers toutes ces histoires, en attendant de pouvoir les vivre pour de vrai, <strong>\u00e0 tes c\u00f4t\u00e9s.</strong></p><p class='sig'>Je t'aime, Victoria.</p><p>Et chaque film qu'on regardera ensemble sera un souvenir de plus, une histoire de plus, et une preuve de plus que tu es la personne avec qui je veux tout vivre :> <span class='heart-end'>&#10084;&#65039;</span></p>"
 },
 en:{
   status_on:'Online',status_off:'Disconnected',status_wait:'Reconnecting...',
@@ -675,7 +678,7 @@ en:{
   label_name:'Your name',label_pwd:'Password',
   placeholder_name:'Choose your username',placeholder_room_name:'Ex: movie, game, love...',btn_continue:'Continue',label_room_name:'Room name',
   btn_create:'Create room',btn_join:'Join room',btn_or:'or',
-  feat_video:'1080p 60fps',feat_voice:'HD Stereo Voice',feat_screen:'Screen 1080p60',feat_chat:'Private chat',
+  feat_video:'1080p 60fps',feat_voice:'HD Stereo Voice',feat_screen:'Screen HD',feat_chat:'Private chat',
   server_warn:'Screen share requires localhost',btn_server:'Start local server',server_hint:'Open http://localhost:8080 in Chrome',
   perm_title:'Permission',btn_cancel:'Cancel',btn_allow:'Allow',
   badge_room:'Room',badge_pwd:'Pwd',btn_copy:'Copy',
@@ -714,7 +717,7 @@ es:{
   label_name:'Tu nombre',label_pwd:'Contrasena',
   placeholder_name:'Elige tu nombre',placeholder_room_name:'Ex: movie, game, love...',btn_continue:'Continuar',label_room_name:'Nombre de la sala',
   btn_create:'Crear sala',btn_join:'Unirse a sala',btn_or:'o',
-  feat_video:'1080p 60fps',feat_voice:'Voz Stereo HD',feat_screen:'Pantalla 1080p60',feat_chat:'Chat privado',
+  feat_video:'1080p 60fps',feat_voice:'Voz Stereo HD',feat_screen:'Pantalla HD',feat_chat:'Chat privado',
   server_warn:'Compartir pantalla requiere localhost',btn_server:'Iniciar servidor local',server_hint:'Abre http://localhost:8080 en Chrome',
   perm_title:'Permiso',btn_cancel:'Cancelar',btn_allow:'Permitir',
   badge_room:'Sala',badge_pwd:'Clave',btn_copy:'Copiar',
@@ -856,10 +859,11 @@ async function reqC(){
 var _uStop=false;var sRetry=0;
 function retryScr(){
   if(sRetry>=2)return;sRetry++;
+  dbg('scr retry '+sRetry);
   setTimeout(async function(){
     if(!P||P.destroyed||!DC||!DC.open||!LS||scr)return;
     try{
-      var s2=await navigator.mediaDevices.getDisplayMedia({video:{cursor:'always',width:{ideal:1920,max:3840},height:{ideal:1080,max:2160},frameRate:{ideal:60,max:60}},audio:false});
+      var s2=await navigator.mediaDevices.getDisplayMedia({video:{cursor:'always',width:{ideal:1920,max:1920},height:{ideal:1080,max:1080},frameRate:{ideal:30,max:30}},audio:false});
       SS=s2;
       SS.getVideoTracks().forEach(function(t){LS.addTrack(t)});
       SS.getVideoTracks()[0].onended=function(){if(_uStop){_uStop=false;stopScr()}else{retryScr()}};
@@ -876,13 +880,13 @@ function retryScr(){
 async function reqS(){
   if(scr){_uStop=true;stopScr();_uStop=false;return}
   if(!navigator.mediaDevices||!navigator.mediaDevices.getDisplayMedia){
-    toast(t('toast_scr_nosupport')+' (HTTPS requis ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â utilise https://k8tcho.github.io/foreverus/)','err');
+    toast(t('toast_scr_nosupport')+' (HTTPS requis ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â utilise https://k8tcho.github.io/foreverus/)','err');
     return
   }
   try{
-    SS=await navigator.mediaDevices.getDisplayMedia({video:{cursor:'always',width:{ideal:1920,max:3840},height:{ideal:1080,max:2160},frameRate:{ideal:60,max:60}},audio:false});
+    SS=await navigator.mediaDevices.getDisplayMedia({video:{cursor:'always',width:{ideal:1920,max:1920},height:{ideal:1080,max:1080},frameRate:{ideal:30,max:30}},audio:false});
     SS.getVideoTracks().forEach(function(t){LS.addTrack(t)});
-    scr=true;sRetry=0;$('bS').className='b on';$('bS').querySelector('.l').textContent='Ecran ON';$('scrB').classList.add('on');$('pip').classList.add('scr');$('lV').srcObject=SS;$('pipE').style.display='none';
+    scr=true;sRetry=0;dbg('scr start');$('bS').className='b on';$('bS').querySelector('.l').textContent='Ecran ON';$('scrB').classList.add('on');$('pip').classList.add('scr');$('lV').srcObject=SS;$('pipE').style.display='none';
     SS.getVideoTracks()[0].onended=function(){if(_uStop){_uStop=false;stopScr()}else{retryScr()}};
     triggerSync();
     sendData({t:'scr',on:true});
@@ -890,6 +894,7 @@ async function reqS(){
     vcUpd();
     toast(t('toast_scr_on'),'ok')
   }catch(e){
+    dbg('scr err '+(e.name||''));
     if(e.name==='NotAllowedError'){toast(t('toast_scr_err'),'err')}
     else{toast(t('toast_scr_nosupport'),'err')}
   }
@@ -919,12 +924,14 @@ async function createRoom(){
       if(PEER_ID&&c.peer!==PEER_ID){c.close();return}
       if(!PEER_ID)PEER_ID=c.peer;
       REMOTE_NAME=(c.metadata.name||'User').substr(0,30);
-      CC=c;c.answer(LS);c.on('stream',onR);c.on('close',function(){if(CC===c)onDC()});c.on('error',function(e){console.error(e)});if(c.peerConnection){doSt(c.peerConnection);boostRate(c.peerConnection)}
+      var old=CC;CC=c;
+      if(old&&old!==c){try{old.close()}catch(e){}}
+      c.answer(LS);dbg('call in '+c.peer);c.on('stream',onR);c.on('close',function(){if(CC===c){CC=null;setTimeout(function(){if(!CC)onDC()},400)}});c.on('error',function(e){console.error(e)});if(c.peerConnection){doSt(c.peerConnection);boostRate(c.peerConnection)}
     });
     P.on('connection',function(c){doDC(c)});
     P.on('disconnected',onSigLost);
     P.on('close',function(){onDC()});
-    P.on('error',function(e){console.error(e);toast('Erreur: '+e.type,'err');setLd(b,false)});
+    P.on('error',function(e){console.error(e);dbg('peer err '+e.type);toast('Erreur: '+e.type,'err');setLd(b,false)});
   }catch(e){toast('Erreur de connexion','err');setLd(b,false)}
 }
 
@@ -953,7 +960,9 @@ function doJoin(){
       if(PEER_ID&&c.peer!==PEER_ID){c.close();return}
       if(!PEER_ID)PEER_ID=c.peer;
       REMOTE_NAME=(c.metadata.name||'User').substr(0,30);
-      CC=c;c.answer(LS);c.on('stream',onR);c.on('close',function(){if(CC===c)onDC()});c.on('error',function(e){console.error(e)});if(c.peerConnection){doSt(c.peerConnection);boostRate(c.peerConnection)}
+      var old=CC;CC=c;
+      if(old&&old!==c){try{old.close()}catch(e){}}
+      c.answer(LS);dbg('call in '+c.peer);c.on('stream',onR);c.on('close',function(){if(CC===c){CC=null;setTimeout(function(){if(!CC)onDC()},400)}});c.on('error',function(e){console.error(e)});if(c.peerConnection){doSt(c.peerConnection);boostRate(c.peerConnection)}
     });
     P.on('disconnected',onSigLost);
     P.on('close',function(){onDC()});
@@ -963,7 +972,7 @@ function doJoin(){
 
 function doDC(c){DC=c;PEER_ID=c.peer;
   lastRx=Date.now();
-  c.on('open',function(){
+  c.on('open',function(){dbg('DC open');
     c.send({type:'auth',token:SECRET});
     flushQ();
     var ds=$('dcS');if(ds)ds.className='dcs on';
@@ -989,9 +998,9 @@ function doDC(c){DC=c;PEER_ID=c.peer;
       if(!chat){unread++;var bb=$('bChB');if(bb){bb.textContent=unread;bb.classList.add('on')}}
     }
     else if(d.t==='react'&&typeof d.e==='string'&&d.e.length<8){flRx(d.e)}
-    else if(d.t==='bye'){DC=null;onDC()}
-    else if(d.t==='st'){RST.mic=!!d.mic;RST.cam=!!d.cam;RST.scr=!!d.scr;vcUpd()}
-    else if(d.t==='scr'){RST.scr=!!d.on;vcUpd();if(!d.on){scrTrack=null;viewScrC();$('scrB').classList.remove('on');var sb=$('sbV');if(sb)sb.remove();var b=$('sbF');if(b)b.remove()}else{pillUp()}}
+    else if(d.t==='bye'){DC=null;dbg('BYE');onDC()}
+    else if(d.t==='st'){dbg('st m'+(d.mic?1:0)+' c'+(d.cam?1:0)+' s'+(d.scr?1:0));RST.mic=!!d.mic;RST.cam=!!d.cam;RST.scr=!!d.scr;vcUpd()}
+    else if(d.t==='scr'){dbg('scr '+(d.on?"ON":"OFF"));RST.scr=!!d.on;vcUpd();if(!d.on){scrTrack=null;viewScrC();$('scrB').classList.remove('on');var sb=$('sbV');if(sb)sb.remove();var b=$('sbF');if(b)b.remove()}else{pillUp()}}
   }catch(e){console.error('data',e)}
   });
   c.on('close',function(){
@@ -1024,6 +1033,7 @@ function hbLoop(){setTimeout(function(){
 },7000)}
 
 function onSigLost(){
+  dbg('sig lost');
   var dp=$('stP');if(dp)dp.className='st w';
   var dT=$('stT');if(dT)dT.textContent=t('status_wait');
   setTimeout(function(){
@@ -1049,8 +1059,9 @@ function triggerSync(){
   try{cl=P.call(tg,LS,{metadata:{quality:cQ,token:SECRET,name:(USER_NAME||'User').substr(0,30)}})}catch(e){console.error(e);return}
   if(cl){
     CC=cl;
+    dbg('call out '+tg);
     cl.on('stream',onR);
-    cl.on('close',function(){if(CC===cl)onDC()});
+    cl.on('close',function(){if(CC===cl){CC=null;setTimeout(function(){if(!CC)onDC()},400)}});
     cl.on('error',function(e){console.error(e)});
     if(cl.peerConnection){doSt(cl.peerConnection);boostRate(cl.peerConnection)}
     if(old&&old!==cl){try{old.close()}catch(e){console.error(e)}}
@@ -1071,6 +1082,7 @@ function setAud(s){
 }
 function onR(s){$('wO').style.display='none';$('ov').classList.add('on');
   var cams=null,srcs=null;try{s.getVideoTracks().forEach(function(tr){var st=tr.getSettings?tr.getSettings():{};if(st.displaySurface)srcs=tr;else cams=tr})}catch(e){}
+  dbg('stream v='+(srcs?'scr ':'')+(cams?'cam ':'')+'aud='+(s.getAudioTracks().length>0?'y':'n'));
   setAud(s);
   var main=null;
   if(cams){main=cams}
@@ -1095,7 +1107,7 @@ function onR(s){$('wO').style.display='none';$('ov').classList.add('on');
   }
   pillUp();
   $('oN').textContent=REMOTE_NAME||USER_NAME||'User';$('oS').textContent=t('connected');$('stP').className='st on';$('stT').textContent=t('status_on');startT();setTimeout(kickPlay,50);vcUpd()}
-function onDC(){try{if(DC&&DC.open){DC.send({t:'bye'})}}catch(e){}try{if(CC&&CC.open){CC.close()}}catch(e){}$('stP').className='st off';$('stT').textContent=t('status_off');$('oS').textContent=t('disconnected');stopT();CONNECTED_PEERS={};scrTrack=null;viewScrC();var ds=$('dcS');if(ds)ds.className='dcs off';var aE=$('audR');if(aE){killV(aE);aE.pause();aE.srcObject=null}if(rV){killV(rV);rV.srcObject=null;rV.remove();rV=null}if(scr){_uStop=true;stopScr();_uStop=false}RST={mic:false,cam:false,scr:false};$('va').classList.remove('scr-v');$('scrB').classList.remove('on');var sb=$('sbV');if(sb){killV(sb);sb.srcObject=null;sb.remove()}var b=$('sbF');if(b)b.remove();vcUpd()}
+function onDC(){dbg('DISCONNECT');try{if(DC&&DC.open){DC.send({t:'bye'})}}catch(e){}try{if(CC&&CC.open){CC.close()}}catch(e){}$('stP').className='st off';$('stT').textContent=t('status_off');$('oS').textContent=t('disconnected');stopT();CONNECTED_PEERS={};scrTrack=null;viewScrC();var ds=$('dcS');if(ds)ds.className='dcs off';var aE=$('audR');if(aE){killV(aE);aE.pause();aE.srcObject=null}if(rV){killV(rV);rV.srcObject=null;rV.remove();rV=null}if(scr){_uStop=true;stopScr();_uStop=false}RST={mic:false,cam:false,scr:false};$('va').classList.remove('scr-v');$('scrB').classList.remove('on');var sb=$('sbV');if(sb){killV(sb);sb.srcObject=null;sb.remove()}var b=$('sbF');if(b)b.remove();vcUpd()}
 
 var RST={mic:false,cam:false,scr:false};
 function vcUpd(){
@@ -1188,10 +1200,13 @@ document.querySelectorAll('.SB .b,.LB .B,.PM .B,.WT .cb').forEach(function(b){b.
 document.addEventListener('touchstart',kickPlay,{passive:true});
 document.addEventListener('click',kickPlay);
 
-if(!SCN){var bS=$('bS');if(bS){bS.classList.add('no');bS.title=t('tip_screen')+' ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â indisponible sur ce navigateur (ouvre depuis Android Chrome ou un PC)'}}
+if(!SCN){var bS=$('bS');if(bS){bS.classList.add('no');bS.title=t('tip_screen')+' ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â indisponible sur ce navigateur (ouvre depuis Android Chrome ou un PC)'}}
 
 if(window.location.protocol==='file:'||window.location.hostname==='localhost'||window.location.hostname==='127.0.0.1')$('serverHelper').style.display='block';
-var VER='v20';
+var VER='v21';
+var dbgArr=[];var vTaps=0;
+function dbg(m){try{dbgArr.push(new Date().toTimeString().substr(0,8)+' '+m);if(dbgArr.length>9)dbgArr.shift();var d=$('dbg');if(d){d.textContent=dbgArr.join('\n')}}catch(e){}}
+function tapVer(){vTaps++;if(vTaps>=5){vTaps=0;var d=$('dbg');if(d)d.classList.toggle('on')}}
 try{var ll=$('verL');if(ll)ll.textContent='ForeverUs '+VER;var vt=$('verTxt');if(vt)vt.textContent=VER;var dv=document.querySelector('.dt');if(dv)dv.textContent=VER}catch(e){}
 
 var savedLang=localStorage.getItem('iv-lang');
