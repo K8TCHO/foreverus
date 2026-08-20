@@ -803,7 +803,7 @@ var cOn='<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" h
 var cOff='<line x1="1" y1="1" x2="23" y2="23"/><path d="M21 21H3a2 2 0 01-2-2V8a2 2 0 012-2h3m3-3h6l2 3h4a2 2 0 012 2v9.34m-7.72-2.06L9.34 13.5"/>';
 var SCRV='<rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>';
 function boostRate(pc){
-  try{if(!pc)return;pc.getSenders().forEach(function(sd){if(sd.track&&sd.track.kind==='video'){try{var p=sd.getParameters();if(!p.encodings||!p.encodings.length)p.encodings=[{}];p.encodings.forEach(function(e){e.maxBitrate=10000000});sd.setParameters(p).catch(function(){})}catch(e){}}})}catch(e){}
+  try{if(!pc)return;pc.getSenders().forEach(function(sd){if(sd.track&&sd.track.kind==='video'){try{var p=sd.getParameters();if(!p.encodings||!p.encodings.length)p.encodings=[{}];p.encodings.forEach(function(e){e.maxBitrate=15000000});sd.setParameters(p).catch(function(){})}catch(e){}}})}catch(e){}
 }
 
 async function reqM(){
@@ -845,8 +845,28 @@ async function reqC(){
   triggerSync();
 }
 
+var _uStop=false;var sRetry=0;
+function retryScr(){
+  if(sRetry>=2)return;sRetry++;
+  setTimeout(async function(){
+    if(!P||P.destroyed||!DC||!DC.open||!LS||scr)return;
+    try{
+      var s2=await navigator.mediaDevices.getDisplayMedia({video:{cursor:'always',width:{ideal:1920,max:3840},height:{ideal:1080,max:2160},frameRate:{ideal:60,max:60}},audio:false});
+      SS=s2;
+      SS.getVideoTracks().forEach(function(t){LS.addTrack(t)});
+      SS.getVideoTracks()[0].onended=function(){if(_uStop){_uStop=false;stopScr()}else{retryScr()}};
+      scr=true;sRetry=0;
+      $('bS').className='b on';$('bS').querySelector('.l').textContent='Ecran ON';$('scrB').classList.add('on');$('pip').classList.add('scr');$('lV').srcObject=SS;$('pipE').style.display='none';
+      triggerSync();
+      sendData({t:'scr',on:true});
+      sendData({t:'st',mic:mic,cam:cam,scr:scr});
+      vcUpd();
+      toast(t('toast_scr_on'),'ok');
+    }catch(e){}
+  },900);
+}
 async function reqS(){
-  if(scr){stopScr();return}
+  if(scr){_uStop=true;stopScr();_uStop=false;return}
   if(!navigator.mediaDevices||!navigator.mediaDevices.getDisplayMedia){
     toast(t('toast_scr_nosupport')+' (HTTPS requis — utilise https://k8tcho.github.io/foreverus/)','err');
     return
@@ -854,8 +874,8 @@ async function reqS(){
   try{
     SS=await navigator.mediaDevices.getDisplayMedia({video:{cursor:'always',width:{ideal:1920,max:3840},height:{ideal:1080,max:2160},frameRate:{ideal:60,max:60}},audio:false});
     SS.getVideoTracks().forEach(function(t){LS.addTrack(t)});
-    scr=true;$('bS').className='b on';$('bS').querySelector('.l').textContent='Ecran ON';$('scrB').classList.add('on');$('pip').classList.add('scr');$('lV').srcObject=SS;$('pipE').style.display='none';
-    SS.getVideoTracks()[0].onended=function(){stopScr()};
+    scr=true;sRetry=0;$('bS').className='b on';$('bS').querySelector('.l').textContent='Ecran ON';$('scrB').classList.add('on');$('pip').classList.add('scr');$('lV').srcObject=SS;$('pipE').style.display='none';
+    SS.getVideoTracks()[0].onended=function(){if(_uStop){_uStop=false;stopScr()}else{retryScr()}};
     triggerSync();
     sendData({t:'scr',on:true});
     sendData({t:'st',mic:mic,cam:cam,scr:scr});
@@ -1014,8 +1034,11 @@ function setAud(s){
 function onR(s){$('wO').style.display='none';$('ov').classList.add('on');
   var cams=null,srcs=null;try{s.getVideoTracks().forEach(function(tr){var st=tr.getSettings?tr.getSettings():{};if(st.displaySurface)srcs=tr;else cams=tr})}catch(e){}
   setAud(s);
-  if(cams){
-    if(rV){rV.srcObject=new MediaStream([cams])}else{var v=document.createElement('video');v.autoplay=true;v.playsInline=true;v.className='rv';v.srcObject=new MediaStream([cams]);$('va').insertBefore(v,$('va').firstChild);rV=v}
+  var main=null;
+  if(cams){main=cams}
+  else if(srcs){main=srcs}
+  if(main){
+    if(rV){rV.srcObject=new MediaStream([main])}else{var v=document.createElement('video');v.autoplay=true;v.playsInline=true;v.className='rv';v.srcObject=new MediaStream([main]);$('va').insertBefore(v,$('va').firstChild);rV=v}
   }else if(!rV){
     var v=document.createElement('video');v.autoplay=true;v.playsInline=true;v.className='rv';v.srcObject=null;$('va').insertBefore(v,$('va').firstChild);rV=v
   }
@@ -1023,7 +1046,7 @@ function onR(s){$('wO').style.display='none';$('ov').classList.add('on');
   scrTrack=srcs||null;
   RST.scr=!!srcs;
   var sb=$('sbV');
-  if(srcs){
+  if(srcs&&cams){
     if(!sb){
       sb=document.createElement('video');sb.id='sbV';sb.autoplay=true;sb.playsInline=true;sb.className='rv2 sb';sb.srcObject=new MediaStream([srcs]);sb.onclick=function(e){e.stopPropagation();viewScr()};$('va').appendChild(sb);
       var b=document.createElement('button');b.id='sbF';b.className='sb-fs';b.textContent=String.fromCharCode(9941);b.title=t('vc_view_scr');b.onclick=function(e){e.stopPropagation();viewScr()};$('va').appendChild(b);
@@ -1034,7 +1057,7 @@ function onR(s){$('wO').style.display='none';$('ov').classList.add('on');
   }
   pillUp();
   $('oN').textContent=REMOTE_NAME||USER_NAME||'User';$('oS').textContent=t('connected');$('stP').className='st on';$('stT').textContent=t('status_on');startT();setTimeout(kickPlay,50);vcUpd()}
-function onDC(){$('stP').className='st off';$('stT').textContent=t('status_off');$('oS').textContent=t('disconnected');stopT();CONNECTED_PEERS={};scrTrack=null;viewScrC();var ds=$('dcS');if(ds)ds.className='dcs off';var aE=$('audR');if(aE){killV(aE);aE.pause();aE.srcObject=null}if(rV){killV(rV);rV.srcObject=null;rV.remove();rV=null}if(scr)stopScr();RST={mic:false,cam:false,scr:false};$('va').classList.remove('scr-v');$('scrB').classList.remove('on');var sb=$('sbV');if(sb){killV(sb);sb.srcObject=null;sb.remove()}var b=$('sbF');if(b)b.remove();vcUpd()}
+function onDC(){$('stP').className='st off';$('stT').textContent=t('status_off');$('oS').textContent=t('disconnected');stopT();CONNECTED_PEERS={};scrTrack=null;viewScrC();var ds=$('dcS');if(ds)ds.className='dcs off';var aE=$('audR');if(aE){killV(aE);aE.pause();aE.srcObject=null}if(rV){killV(rV);rV.srcObject=null;rV.remove();rV=null}if(scr){_uStop=true;stopScr();_uStop=false}RST={mic:false,cam:false,scr:false};$('va').classList.remove('scr-v');$('scrB').classList.remove('on');var sb=$('sbV');if(sb){killV(sb);sb.srcObject=null;sb.remove()}var b=$('sbF');if(b)b.remove();vcUpd()}
 
 var RST={mic:false,cam:false,scr:false};
 function vcUpd(){
@@ -1059,13 +1082,19 @@ function vcUpd(){
 function viewScr(){
   var t=scrTrack;
   if(!t){var sb=$('sbV');if(sb&&sb.srcObject){var ts=sb.srcObject.getVideoTracks();if(ts.length)t=ts[0]}}
+  if(!t){var r=$('rV');if(r&&r.srcObject){var ts2=r.srcObject.getVideoTracks();if(ts2.length)t=ts2[0]}}
   if(!t){toast(t('vc_noscr'),'err');return}
   var v=$('svV');
   v.srcObject=new MediaStream([t]);
   v.play().catch(function(){});
   $('scrV').classList.add('on');
+  if(v.webkitEnterFullscreen){try{v.webkitEnterFullscreen()}catch(e){}}
+  else if(v.requestFullscreen){try{v.requestFullscreen().catch(function(){})}catch(e){}}
 }
-function viewScrC(){var v=$('svV');if(v){v.pause();v.srcObject=null}$('scrV').classList.remove('on')}
+function viewScrC(){if(document.fullscreenElement){try{document.exitFullscreen()}catch(e){}}var v=$('svV');if(v){v.pause();v.srcObject=null}$('scrV').classList.remove('on')}
+function svClose(){var O=$('scrV');if(O&&O.classList.contains('on')&&!document.fullscreenElement){viewScrC()}}
+document.addEventListener('fullscreenchange',svClose);
+document.addEventListener('webkitendfullscreen',function(){viewScrC()});
 function pillUp(){var p=$('vSP');if(p){p.classList.toggle('on',!!RST.scr)}}
 function togVC(){var v=$('vc');v.classList.toggle('on');var b=$('bVC');if(b)b.classList.toggle('on',v.classList.contains('on'))}
 
@@ -1124,7 +1153,7 @@ document.addEventListener('click',kickPlay);
 if(!SCN){var bS=$('bS');if(bS){bS.classList.add('no');bS.title=t('tip_screen')+' — indisponible sur ce navigateur (ouvre depuis Android Chrome ou un PC)'}}
 
 if(window.location.protocol==='file:'||window.location.hostname==='localhost'||window.location.hostname==='127.0.0.1')$('serverHelper').style.display='block';
-var VER='v16';
+var VER='v17';
 try{var ll=$('verL');if(ll)ll.textContent='ForeverUs '+VER;var vt=$('verTxt');if(vt)vt.textContent=VER;var dv=document.querySelector('.dt');if(dv)dv.textContent=VER}catch(e){}
 
 var savedLang=localStorage.getItem('iv-lang');
