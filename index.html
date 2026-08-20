@@ -6,28 +6,29 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>ForeverUs</title>
+<title>ForeverUs ðŸ’—</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --bg:#080810;--bg2:#0e0e1a;
+  --bg:#10080f;--bg2:#1a0f18;
   --gl:rgba(255,255,255,.04);--glb:rgba(255,255,255,.06);
   --bd:rgba(255,255,255,.06);--bd2:rgba(255,255,255,.1);
-  --t1:#f0f0fa;--t2:#8e8cb2;--t3:#54527a;
-  --ac:#7b6cf0;--ac2:#a8a0ff;--ac3:#ff6eb4;
-  --grn:#00e89d;--red:#ff4466;--gld:#ffd700;
+  --t1:#fdf1f6;--t2:#d9a9bd;--t3:#8f5f76;
+  --ac:#ff5c8a;--ac2:#ffa5c8;--ac3:#ffd166;
+  --grn:#00e89d;--red:#ff4466;--gld:#ffd166;
 }
-html,body{height:100%;height:100dvh;overflow:hidden;font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t1);-webkit-font-smoothing:antialiased;position:fixed;inset:0;width:100%}
+html,body{height:100%;height:100dvh;overflow:hidden;font-family:'Nunito','Inter',system-ui,sans-serif;background:var(--bg);color:var(--t1);-webkit-font-smoothing:antialiased;position:fixed;inset:0;width:100%}
 body{display:flex;flex-direction:column;-webkit-user-select:none;user-select:none}
 button,input{-webkit-tap-highlight-color:transparent}
 button{touch-action:manipulation}
-body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 120% 70% at 5% -5%,rgba(123,108,246,.12),transparent 50%),radial-gradient(ellipse 80% 100% at 95% 105%,rgba(255,110,180,.07),transparent 50%)}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 120% 70% at 5% -5%,rgba(255,92,138,.14),transparent 50%),radial-gradient(ellipse 80% 100% at 95% 105%,rgba(255,209,102,.07),transparent 50%)}
+h1,h2,h3,.nm,.LB h1,.LANG h2,.MSG .card h3,.OV .n,.vc-h,.WT h3,.JOIN .jbox h3,.USERNAME h2,.sig{font-family:'Playfair Display',Georgia,serif;letter-spacing:.2px}
 
 HD{display:flex;align-items:center;padding:12px 20px;background:rgba(8,8,16,.85);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-bottom:1px solid var(--bd);gap:12px;flex-shrink:0;z-index:5}
-HD .mk{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--ac),var(--ac3));display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 12px rgba(123,108,246,.3)}
+HD .mk{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#ff5c8a,#ff8ab5);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 12px rgba(123,108,246,.3)}
 HD .mk svg{width:18px;height:18px;fill:#fff;stroke:none}
 HD .nm{font-size:14px;font-weight:700;background:linear-gradient(135deg,var(--ac2),var(--ac3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 HD .st{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:10px;font-weight:600;padding:4px 10px;border-radius:99px;border:1px solid transparent}
@@ -45,12 +46,14 @@ MN{flex:1;display:flex;overflow:hidden;position:relative}
 .LB{width:100%;height:100%;display:none;align-items:center;justify-content:center;padding:20px}
 .LB .wrap{width:100%;max-width:420px;display:flex;flex-direction:column;align-items:center;gap:20px}
 .LB .hero{text-align:center}
-.LB .av{width:90px;height:90px;border-radius:50%;margin:0 auto 16px;background:linear-gradient(135deg,var(--ac),var(--ac3));display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 8px 32px rgba(123,108,246,.3)}
+.LB .av{width:90px;height:90px;border-radius:50%;margin:0 auto 16px;background:linear-gradient(135deg,#ff5c8a,#ff8ab5);display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 8px 32px rgba(123,108,246,.3)}
 .LB .av svg{width:40px;height:40px;fill:#fff;stroke:none}
-.LB .av::before{content:'';position:absolute;inset:-3px;border-radius:50%;background:conic-gradient(var(--ac),var(--ac3),var(--ac));opacity:.35;filter:blur(8px);animation:rot 4s linear infinite;z-index:-1}
+.LB .av::before{content:'';position:absolute;inset:-3px;border-radius:50%;background:conic-gradient(#ffd166,#ff5c8a,#ffd166);opacity:.35;filter:blur(8px);animation:rot 4s linear infinite;z-index:-1}
 @keyframes rot{to{filter:blur(8px) hue-rotate(360deg)}}
 .LB h1{font-size:28px;font-weight:900;margin-bottom:2px;letter-spacing:-.3px}
 .LB .sub{font-size:12px;color:var(--t2)}
+.LB .tag{font-size:12px;color:var(--t2);font-style:italic;font-family:'Playfair Display',Georgia,serif;max-width:320px;margin-top:2px;line-height:1.5}
+.LB .credit{font-size:9.5px;color:var(--t3);letter-spacing:.5px;margin-top:2px;text-align:center}
 
 .LB .form{width:100%;background:rgba(14,14,26,.7);backdrop-filter:blur(32px);border:1px solid var(--bd);border-radius:18px;padding:28px 24px;display:flex;flex-direction:column;gap:14px}
 .LB .fg{text-align:left}
@@ -68,7 +71,7 @@ MN{flex:1;display:flex;overflow:hidden;position:relative}
 .B.ld .ld{display:block}
 .B.ld .bt{opacity:.6}
 @keyframes bspin{to{transform:rotate(360deg)}}
-.BP{background:linear-gradient(135deg,var(--ac),#9d7cff);color:#fff;box-shadow:0 4px 20px rgba(123,108,246,.25)}
+.BP{background:linear-gradient(135deg,#ff5c8a,#ffd166);color:#fff;box-shadow:0 4px 20px rgba(123,108,246,.25)}
 .BP:hover:not(:disabled){box-shadow:0 6px 28px rgba(123,108,246,.4);transform:translateY(-1px)}
 .BP:active:not(:disabled){box-shadow:0 2px 12px rgba(123,108,246,.3)}
 .BG{background:rgba(255,255,255,.04);color:var(--t2);border:1px solid var(--bd)}
@@ -117,7 +120,7 @@ MN{flex:1;display:flex;overflow:hidden;position:relative}
 .vc-m{display:flex;align-items:center;gap:9px;padding:7px 12px;margin:0 6px;border-radius:8px;transition:background .15s}
 .vc-m:hover{background:rgba(255,255,255,.05)}
 .vc-m.shr{cursor:pointer}
-.vc-m .av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--ac),var(--ac3));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;flex-shrink:0}
+.vc-m .av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#ff5c8a,#ff8ab5);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;flex-shrink:0}
 .vc-m .un{flex:1;min-width:0;font-size:11.5px;font-weight:700;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .vc-m .ic{display:flex;align-items:center;gap:7px}
 .vc-m .ic i{width:15px;height:15px;display:flex;align-items:center;justify-content:center;border-radius:4px;font-style:normal}
@@ -239,7 +242,7 @@ MN{flex:1;display:flex;overflow:hidden;position:relative}
 .CH .msgs::-webkit-scrollbar{width:2px}
 .CH .msgs::-webkit-scrollbar-thumb{background:rgba(255,255,255,.06);border-radius:2px}
 .CH .m{max-width:80%;padding:9px 14px;border-radius:13px;font-size:12px;line-height:1.5;word-wrap:break-word}
-.CH .m.sent{align-self:flex-end;background:linear-gradient(135deg,var(--ac),#9d7cff);color:#fff;border-bottom-right-radius:4px}
+.CH .m.sent{align-self:flex-end;background:linear-gradient(135deg,#ff5c8a,#ffd166);color:#fff;border-bottom-right-radius:4px}
 .CH .m.recv{align-self:flex-start;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-bottom-left-radius:4px}
 .CH .m .tm{font-size:8px;opacity:.4;margin-top:3px}
 .CH .m.sys{align-self:center;background:transparent;color:var(--t3);font-size:10px;padding:3px 10px}
@@ -269,7 +272,7 @@ MN{flex:1;display:flex;overflow:hidden;position:relative}
 @keyframes lngf{from{opacity:0}to{opacity:1}}
 .LANG .box{text-align:center;animation:lngb .5s cubic-bezier(.4,0,.2,1)}
 @keyframes lngb{from{opacity:0;transform:translateY(20px) scale(.95)}to{opacity:1;transform:none}}
-.LANG .box .lg-av{width:80px;height:80px;border-radius:50%;margin:0 auto 20px;background:linear-gradient(135deg,var(--ac),var(--ac3));display:flex;align-items:center;justify-content:center;box-shadow:0 8px 32px rgba(123,108,246,.3)}
+.LANG .box .lg-av{width:80px;height:80px;border-radius:50%;margin:0 auto 20px;background:linear-gradient(135deg,#ff5c8a,#ff8ab5);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 32px rgba(123,108,246,.3)}
 .LANG .box .lg-av svg{width:36px;height:36px;fill:#fff;stroke:none}
 .LANG .box h2{font-size:24px;font-weight:900;margin-bottom:4px;letter-spacing:-.3px}
 .LANG .box .lg-sub{font-size:12px;color:var(--t2);margin-bottom:28px}
@@ -298,7 +301,7 @@ MN{flex:1;display:flex;overflow:hidden;position:relative}
 .MSG .card .msg-body strong{color:var(--t1);font-weight:700}
 .MSG .card .msg-body .sig{color:var(--ac3);font-style:italic;margin-top:12px;font-weight:600}
 .MSG .card .msg-body .heart-end{color:var(--red);font-size:14px}
-.MSG .card .msg-close{width:100%;padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--ac),#9d7cff);color:#fff;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s;letter-spacing:.3px}
+.MSG .card .msg-close{width:100%;padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,#ff5c8a,#ffd166);color:#fff;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s;letter-spacing:.3px}
 .MSG .card .msg-close:hover{box-shadow:0 6px 24px rgba(123,108,246,.4);transform:translateY(-1px)}
 .MSG .card .msg-close:active{transform:scale(.97)}
 
@@ -324,7 +327,7 @@ MN{flex:1;display:flex;overflow:hidden;position:relative}
 .USERNAME .uform input:focus{border-color:var(--ac);box-shadow:0 0 0 3px rgba(123,108,246,.1)}
 .USERNAME .uform .B{width:100%;padding:14px;font-size:15px}
 
-.PILL{position:absolute;top:14px;left:50%;transform:translateX(-50%);display:none;align-items:center;gap:7px;padding:8px 16px;border-radius:99px;background:rgba(123,108,246,.16);border:1px solid rgba(123,108,246,.4);color:var(--ac2);font-size:9.5px;font-weight:700;letter-spacing:1px;cursor:pointer;z-index:22;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);white-space:nowrap;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.PILL{position:absolute;top:14px;left:50%;transform:translateX(-50%);display:none;align-items:center;gap:7px;padding:8px 16px;border-radius:99px;background:rgba(123,108,246,.16);border:1px solid rgba(255,92,138,.45);color:var(--ac2);font-size:9.5px;font-weight:700;letter-spacing:1px;cursor:pointer;z-index:22;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);white-space:nowrap;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .PILL.on{display:flex;animation:pt 1.6s ease-in-out infinite}
 @keyframes pt{0%,100%{opacity:1}50%{opacity:.55}}
 .PILL .pd{width:7px;height:7px;border-radius:50%;background:var(--grn);box-shadow:0 0 8px var(--grn);flex-shrink:0}
@@ -332,7 +335,7 @@ MN{flex:1;display:flex;overflow:hidden;position:relative}
 .SCRV.on{display:flex}
 .SCRV video{width:100%;height:100%;object-fit:contain}
 .SCRV .svc{position:absolute;top:14px;right:14px;width:42px;height:42px;border-radius:13px;border:none;background:rgba(255,255,255,.1);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
-.ver{display:inline-block;margin-top:10px;padding:4px 12px;border-radius:99px;background:rgba(123,108,246,.12);border:1px solid rgba(123,108,246,.25);color:var(--ac2);font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase}
+.ver{display:inline-block;margin-top:10px;padding:4px 12px;border-radius:99px;background:rgba(255,92,138,.12);border:1px solid rgba(255,92,138,.35);color:var(--ac2);font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase}
 @media(max-width:640px){
   HD{padding:8px 12px;gap:8px}
   HD .mk{width:30px;height:30px;border-radius:9px}
@@ -387,9 +390,9 @@ MN{flex:1;display:flex;overflow:hidden;position:relative}
     <h2>ForeverUs</h2>
     <div class="lg-sub">Choisissez votre langue</div>
     <div class="opts">
-      <button onclick="setLang('fr')"><div class="flag">🇫🇷</div><div class="lname">Francais</div><div class="lcode">FR</div></button>
-      <button onclick="setLang('en')"><div class="flag">🇬🇧</div><div class="lname">English</div><div class="lcode">EN</div></button>
-      <button onclick="setLang('es')"><div class="flag">🇪🇸</div><div class="lname">Espanol</div><div class="lcode">ES</div></button>
+      <button onclick="setLang('fr')"><div class="flag">Ã°Å¸â€¡Â«Ã°Å¸â€¡Â·</div><div class="lname">Francais</div><div class="lcode">FR</div></button>
+      <button onclick="setLang('en')"><div class="flag">Ã°Å¸â€¡Â¬Ã°Å¸â€¡Â§</div><div class="lname">English</div><div class="lcode">EN</div></button>
+      <button onclick="setLang('es')"><div class="flag">Ã°Å¸â€¡ÂªÃ°Å¸â€¡Â¸</div><div class="lname">Espanol</div><div class="lcode">ES</div></button>
     </div>
     <div class="ver" id="verL"></div>
   </div>
@@ -449,6 +452,7 @@ MN{flex:1;display:flex;overflow:hidden;position:relative}
         <div class="av"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
         <h1 id="lobName">-</h1>
         <div class="sub" data-i18n="welcome_sub">Appel video prive haute qualite</div>
+        <p class="tag" data-i18n="tagline">Parce que chaque film regarde ensemble est une preuve d'amour de plus</p>
         <div class="ver" id="verTxt"></div>
       </div>
       <div class="form">
@@ -467,13 +471,14 @@ MN{flex:1;display:flex;overflow:hidden;position:relative}
         </div>
       </div>
       <div class="feats">
-        <div class="ft"><span style="background:rgba(123,108,246,.1)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--ac2)" stroke-width="2" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></span><span data-i18n="feat_video">1080p 60fps</span></div>
-        <div class="ft"><span style="background:rgba(255,110,180,.1)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--ac3)" stroke-width="2" stroke-linecap="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/></svg></span><span data-i18n="feat_voice">Voix stereo HD</span></div>
+        <div class="ft"><span style="background:rgba(255,92,138,.1)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--ac2)" stroke-width="2" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></span><span data-i18n="feat_video">1080p 60fps</span></div>
+        <div class="ft"><span style="background:rgba(255,92,138,.1)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--ac)" stroke-width="2" stroke-linecap="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/></svg></span><span data-i18n="feat_voice">Voix stereo HD</span></div>
         <div class="ft"><span style="background:rgba(0,232,157,.1)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--grn)" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></span><span data-i18n="feat_screen">Ecran 1080p60</span></div>
-        <div class="ft"><span style="background:rgba(255,215,0,.1)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--gld)" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></span><span data-i18n="feat_chat">Chat prive</span></div>
+        <div class="ft"><span style="background:rgba(255,92,138,.1)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--gld)" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></span><span data-i18n="feat_chat">Chat prive</span></div>
       </div>
+      <div class="credit" data-i18n="credit">ðŸ’— Fait avec tout mon amour pour Victoria</div>
       <div id="serverHelper" style="display:none;margin-top:4px;padding:10px 14px;background:rgba(255,68,102,.06);border:1px solid rgba(255,68,102,.15);border-radius:10px;text-align:center;width:100%;max-width:420px">
-        <div style="font-size:10px;color:var(--red);font-weight:700;margin-bottom:6px" data-i18n="server_warn">⚠ Partage d'ecran necessite localhost</div>
+        <div style="font-size:10px;color:var(--red);font-weight:700;margin-bottom:6px" data-i18n="server_warn">Ã¢Å¡Â  Partage d'ecran necessite localhost</div>
         <button class="B BG" onclick="launchServer()" style="width:100%;padding:10px;font-size:12px">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
           <span data-i18n="btn_server">Lancer le serveur local</span>
@@ -596,12 +601,12 @@ MN{flex:1;display:flex;overflow:hidden;position:relative}
       </button>
       <div class="sep"></div>
       <div class="rx">
-        <button onclick="sendRx('❤️')" title="Coeur">❤️</button>
-        <button onclick="sendRx('😍')" title="Amour">😍</button>
-        <button onclick="sendRx('🔥')" title="Feu">🔥</button>
-        <button onclick="sendRx('😂')" title="rire">😂</button>
-        <button onclick="sendRx('👍')" title="Like">👍</button>
-        <button onclick="sendRx('💋')" title="Bisou">💋</button>
+        <button onclick="sendRx('Ã¢ÂÂ¤Ã¯Â¸Â')" title="Coeur">Ã¢ÂÂ¤Ã¯Â¸Â</button>
+        <button onclick="sendRx('Ã°Å¸ËœÂ')" title="Amour">Ã°Å¸ËœÂ</button>
+        <button onclick="sendRx('Ã°Å¸â€Â¥')" title="Feu">Ã°Å¸â€Â¥</button>
+        <button onclick="sendRx('Ã°Å¸Ëœâ€š')" title="rire">Ã°Å¸Ëœâ€š</button>
+        <button onclick="sendRx('Ã°Å¸â€˜Â')" title="Like">Ã°Å¸â€˜Â</button>
+        <button onclick="sendRx('Ã°Å¸â€™â€¹')" title="Bisou">Ã°Å¸â€™â€¹</button>
       </div>
       <div class="sep"></div>
       <button class="b end" onclick="hangUp()">
@@ -627,6 +632,7 @@ var TR={
 fr:{
   status_on:'En ligne',status_off:'Deconnecte',status_wait:'Reconnexion...',
   welcome:'Bienvenue',welcome_sub:'Appel video prive haute qualite',
+  tagline:"Parce que chaque film regarde ensemble est une preuve d'amour de plus",credit:'Fait avec tout mon amour pour Victoria',
   label_name:'Ton nom',label_pwd:'Mot de passe',
   placeholder_name:'Choisis ton pseudo',placeholder_room_name:'Ex: movie, game, love...',btn_continue:'Continuer',label_room_name:'Nom de la salle',
   btn_create:'Creer la salle',btn_join:'Rejoindre une salle',btn_or:'ou',
@@ -660,11 +666,12 @@ fr:{
   overlay_waiting:'En attente...',overlay_share:'Partage le code pour te rejoindre',
   connected:'Connecte',disconnected:'Deconnecte',
   msg_title:'Un message pour toi',msg_close:'Fermer',
-  msg_p1:"<p><em>Ce site, je l'ai cr\u00e9e pour toi.</em></p><p>Pour qu'on ait notre petit coin \u00e0 nous. Un endroit o\u00f9 le temps s'arr\u00eate un peu, o\u00f9 la distance dispara\u00eet, et o\u00f9 il ne reste plus qu'une chose : <strong>nous deux.</strong></p><p>Je l'ai cr\u00e9\u00e9 pour qu'on puisse partager nos films, nos s\u00e9ries, nos rires et m\u00eame nos silences complices. Pour qu'\u00e0 travers un \u00e9cran, on puisse vivre les m\u00eames \u00e9motions au m\u00eame moment, comme si on \u00e9tait blottis l'un contre l'autre, sur le m\u00eame canap\u00e9.</p><p>Chaque film qu'on regardera ici deviendra un souvenir. Chaque s\u00e9rie qu'on encha\u00eenera deviendra une histoire de plus qu'on aura v\u00e9cue ensemble.</p><p>Parce qu'au fond, peu importe ce qu'on regarde. <strong>L'important, c'est toi, \u00e0 l'autre bout de l'\u00e9cran, avec moi.</strong></p><p>Je voulais qu'on ait toujours un endroit o\u00f9 se retrouver. Un petit refuge rien qu'\u00e0 nous, o\u00f9 la distance n'a plus vraiment d'importance et où seul compte le moment qu'on partage.</p><p>Alors installe-toi, prends ton snack pr\u00e9f\u00e9r\u00e9, choisis ce qu'on va regarder\u2026</p><p>Et laisse-moi te faire voyager \u00e0 travers toutes ces histoires, en attendant de pouvoir les vivre pour de vrai, <strong>\u00e0 tes c\u00f4t\u00e9s.</strong></p><p class='sig'>Je t'aime, Victoria.</p><p>Et chaque film qu'on regardera ensemble sera un souvenir de plus, une histoire de plus, et une preuve de plus que tu es la personne avec qui je veux tout vivre :> <span class='heart-end'>&#10084;&#65039;</span></p>"
+  msg_p1:"<p><em>Ce site, je l'ai cr\u00e9e pour toi.</em></p><p>Pour qu'on ait notre petit coin \u00e0 nous. Un endroit o\u00f9 le temps s'arr\u00eate un peu, o\u00f9 la distance dispara\u00eet, et o\u00f9 il ne reste plus qu'une chose : <strong>nous deux.</strong></p><p>Je l'ai cr\u00e9\u00e9 pour qu'on puisse partager nos films, nos s\u00e9ries, nos rires et m\u00eame nos silences complices. Pour qu'\u00e0 travers un \u00e9cran, on puisse vivre les m\u00eames \u00e9motions au m\u00eame moment, comme si on \u00e9tait blottis l'un contre l'autre, sur le m\u00eame canap\u00e9.</p><p>Chaque film qu'on regardera ici deviendra un souvenir. Chaque s\u00e9rie qu'on encha\u00eenera deviendra une histoire de plus qu'on aura v\u00e9cue ensemble.</p><p>Parce qu'au fond, peu importe ce qu'on regarde. <strong>L'important, c'est toi, \u00e0 l'autre bout de l'\u00e9cran, avec moi.</strong></p><p>Je voulais qu'on ait toujours un endroit o\u00f9 se retrouver. Un petit refuge rien qu'\u00e0 nous, o\u00f9 la distance n'a plus vraiment d'importance et oÃƒÂ¹ seul compte le moment qu'on partage.</p><p>Alors installe-toi, prends ton snack pr\u00e9f\u00e9r\u00e9, choisis ce qu'on va regarder\u2026</p><p>Et laisse-moi te faire voyager \u00e0 travers toutes ces histoires, en attendant de pouvoir les vivre pour de vrai, <strong>\u00e0 tes c\u00f4t\u00e9s.</strong></p><p class='sig'>Je t'aime, Victoria.</p><p>Et chaque film qu'on regardera ensemble sera un souvenir de plus, une histoire de plus, et une preuve de plus que tu es la personne avec qui je veux tout vivre :> <span class='heart-end'>&#10084;&#65039;</span></p>"
 },
 en:{
   status_on:'Online',status_off:'Disconnected',status_wait:'Reconnecting...',
   welcome:'Welcome',welcome_sub:'Private HD video call',
+  tagline:"Because every movie we watch together is one more proof of love",credit:'Made with all my love for Victoria',
   label_name:'Your name',label_pwd:'Password',
   placeholder_name:'Choose your username',placeholder_room_name:'Ex: movie, game, love...',btn_continue:'Continue',label_room_name:'Room name',
   btn_create:'Create room',btn_join:'Join room',btn_or:'or',
@@ -703,6 +710,7 @@ en:{
 es:{
   status_on:'En linea',status_off:'Desconectado',status_wait:'Reconexion...',
   welcome:'Bienvenido',welcome_sub:'Videollamada privada HD',
+  tagline:"Porque cada pelicula que vemos juntos es una prueba de amor mas",credit:'Hecho con todo mi amor para Victoria',
   label_name:'Tu nombre',label_pwd:'Contrasena',
   placeholder_name:'Elige tu nombre',placeholder_room_name:'Ex: movie, game, love...',btn_continue:'Continuar',label_room_name:'Nombre de la sala',
   btn_create:'Crear sala',btn_join:'Unirse a sala',btn_or:'o',
@@ -868,7 +876,7 @@ function retryScr(){
 async function reqS(){
   if(scr){_uStop=true;stopScr();_uStop=false;return}
   if(!navigator.mediaDevices||!navigator.mediaDevices.getDisplayMedia){
-    toast(t('toast_scr_nosupport')+' (HTTPS requis — utilise https://k8tcho.github.io/foreverus/)','err');
+    toast(t('toast_scr_nosupport')+' (HTTPS requis Ã¢â‚¬â€ utilise https://k8tcho.github.io/foreverus/)','err');
     return
   }
   try{
@@ -1150,10 +1158,10 @@ document.querySelectorAll('.SB .b,.LB .B,.PM .B,.WT .cb').forEach(function(b){b.
 document.addEventListener('touchstart',kickPlay,{passive:true});
 document.addEventListener('click',kickPlay);
 
-if(!SCN){var bS=$('bS');if(bS){bS.classList.add('no');bS.title=t('tip_screen')+' — indisponible sur ce navigateur (ouvre depuis Android Chrome ou un PC)'}}
+if(!SCN){var bS=$('bS');if(bS){bS.classList.add('no');bS.title=t('tip_screen')+' Ã¢â‚¬â€ indisponible sur ce navigateur (ouvre depuis Android Chrome ou un PC)'}}
 
 if(window.location.protocol==='file:'||window.location.hostname==='localhost'||window.location.hostname==='127.0.0.1')$('serverHelper').style.display='block';
-var VER='v17';
+var VER='v18';
 try{var ll=$('verL');if(ll)ll.textContent='ForeverUs '+VER;var vt=$('verTxt');if(vt)vt.textContent=VER;var dv=document.querySelector('.dt');if(dv)dv.textContent=VER}catch(e){}
 
 var savedLang=localStorage.getItem('iv-lang');
