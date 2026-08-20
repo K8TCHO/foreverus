@@ -401,6 +401,7 @@ MN{flex:1;display:flex;overflow:hidden;position:relative}
   .SB .b.end{margin:0 auto}
   .PIP.big{transform:scale(1.35)}
 }
+.m .ms{font-size:9px;margin-left:5px;opacity:.7;color:#8affb0;font-weight:700}
 </style>
 </head>
 <body>
@@ -667,7 +668,7 @@ fr:{
   vc_channel:'Salon vocal',vc_me:'Moi',vc_guest:'Invite',vc_noscr:'Pas de partage',vc_view_scr:'Voir son ecran (plein ecran)',
   sb_chat:'Chat',sb_chat_on:'Chat ON',
   sb_full:'Plein ecr.',sb_quality:'Qualite',
-  sb_hangup:'Raccrocher (Esc)',sb_end2:'Encore une fois pour raccrocher',reconnect:'Reconnexion... ',perm_ios:'Autorise la camera/micro dans les Reglages (Safari)',
+  sb_hangup:'Raccrocher (Esc)',sb_end2:'Encore une fois pour raccrocher',reconnect:'Reconnexion... ',perm_ios:'Autorise la camera/micro dans les Reglages (Safari)',toast_nochan:'Canal non connecte, reessaye',
   tip_mic:'Micro (M)',tip_cam:'Camera (V)',tip_screen:'Partager ecran (S)',
   tip_chat:'Chat (C)',tip_full:'Plein ecran (F)',tip_quality:'Qualite video (Q)',
   perm_mic_title:'Microphone',perm_mic_desc:'Active ton micro pour parler.',
@@ -706,7 +707,7 @@ en:{
   vc_channel:'Voice channel',vc_me:'You',vc_guest:'Guest',vc_noscr:'Not sharing',vc_view_scr:'View their screen (fullscreen)',
   sb_chat:'Chat',sb_chat_on:'Chat ON',
   sb_full:'Fullscreen',sb_quality:'Quality',
-  sb_hangup:'Hang up (Esc)',sb_end2:'Tap again to hang up',reconnect:'Reconnecting... ',perm_ios:'Allow camera/mic in Settings (Safari)',
+  sb_hangup:'Hang up (Esc)',sb_end2:'Tap again to hang up',reconnect:'Reconnecting... ',perm_ios:'Allow camera/mic in Settings (Safari)',toast_nochan:'Channel not connected, retry',
   tip_mic:'Mic (M)',tip_cam:'Camera (V)',tip_screen:'Share screen (S)',
   tip_chat:'Chat (C)',tip_full:'Fullscreen (F)',tip_quality:'Video quality (Q)',
   perm_mic_title:'Microphone',perm_mic_desc:'Enable your mic to speak.',
@@ -745,7 +746,7 @@ es:{
   vc_channel:'Canal de voz',vc_me:'Yo',vc_guest:'Invitado',vc_noscr:'No comparte',vc_view_scr:'Ver su pantalla (pantalla completa)',
   sb_chat:'Chat',sb_chat_on:'Chat ON',
   sb_full:'Pantalla comp.',sb_quality:'Calidad',
-  sb_hangup:'Colgar (Esc)',sb_end2:'Toca otra vez para colgar',reconnect:'Reconectando... ',perm_ios:'Permite la camara/micro en Ajustes (Safari)',
+  sb_hangup:'Colgar (Esc)',sb_end2:'Toca otra vez para colgar',reconnect:'Reconectando... ',perm_ios:'Permite la camara/micro en Ajustes (Safari)',toast_nochan:'Canal no conectado, reintenta',
   tip_mic:'Micro (M)',tip_cam:'Camara (V)',tip_screen:'Compartir pantalla (S)',
   tip_chat:'Chat (C)',tip_full:'Pantalla completa (F)',tip_quality:'Calidad de video (Q)',
   perm_mic_title:'Microfono',perm_mic_desc:'Activa tu microfono para hablar.',
@@ -992,6 +993,7 @@ function doJoin(){
 function doDC(c){DC=c;PEER_ID=c.peer;
   lastRx=Date.now();
   c.on('open',function(){dbg('DC open');
+    try{console.log('[FU] AUTH SENT')}catch(elog){}
     c.send({type:'auth',token:SECRET});
     flushQ();
     var ds=$('dcS');if(ds)ds.className='dcs on';
@@ -1005,16 +1007,21 @@ function doDC(c){DC=c;PEER_ID=c.peer;
   c.on('data',function(d){
   try{
     if(!d||typeof d!=='object')return;
+    try{console.log('[FU] DATA RECEIVED:',d)}catch(elog){}
     lastRx=Date.now();
     if(d.type==='auth'){
-      if(d.token===SECRET){if(!CONNECTED_PEERS[c.peer]){CONNECTED_PEERS[c.peer]=true;flushQ();toast(t('toast_connect'),'ok')}}
-      else{try{c.close()}catch(e){}}
+      if(d.token===SECRET){try{console.log('[FU] AUTH OK',c.peer)}catch(elog){};if(!CONNECTED_PEERS[c.peer]){CONNECTED_PEERS[c.peer]=true;flushQ();toast(t('toast_connect'),'ok')}}
+      else{try{console.log('[FU] AUTH FAIL',c.peer)}catch(elog){};try{c.close()}catch(e){}}
       return;
     }
     var mx=500;
-    if(d.t==='chat'&&typeof d.m==='string'&&d.m.length<mx&&typeof d.n==='string'&&d.n.length<30){
+    if(d.t==='chat'&&typeof d.m==='string'&&d.m.length<=mx&&typeof d.n==='string'&&d.n.length<30){
       addM(d.m,'recv',d.n);
+      if(typeof d.id==='string'&&d.id.length<30){try{DC.send({t:'ack',id:d.id})}catch(ae){}}
       if(!chat){unread++;var bb=$('bChB');if(bb){bb.textContent=unread;bb.classList.add('on')}}
+    }
+    else if(d.t==='ack'&&typeof d.id==='string'&&d.id.length<30){
+      var el=document.querySelector('.ms[data-mid="'+d.id+'"]');if(el)el.textContent='\u2713';
     }
     else if(d.t==='react'&&typeof d.e==='string'&&d.e.length<8){flRx(d.e)}
     else if(d.t==='bye'){DC=null;dbg('BYE');onDC()}
@@ -1188,14 +1195,23 @@ function doSt(pc){var si=setInterval(async function(){if(!pc||pc.signalingState=
 function togCh(fOff){if(fOff===true){chat=false;$('chP').classList.remove('on');$('bCh').className='b';$('bCh').querySelector('.l').textContent='Chat';return}chat=!chat;$('chP').classList.toggle('on',chat);$('bCh').className=chat?'b on':'b';$('bCh').querySelector('.l').textContent=chat?'Chat ON':'Chat';if(chat){var vv=$('vc');if(vv&&vv.classList.contains('on')){vv.classList.remove('on');var bv2=$('bVC');if(bv2)bv2.classList.remove('on')}unread=0;var bb=$('bChB');if(bb){bb.classList.remove('on');bb.textContent='0'}$('cI').focus();$('cMs').scrollTop=$('cMs').scrollHeight}}
 var OUTQ=[];var outT=null;var unread=0;
 function sendData(o){
-  if(DC&&DC.open){try{DC.send(o);flushQ()}catch(e){OUTQ.push(o);scheduleQ()}}
-  else{OUTQ.push(o);if(OUTQ.length>60)OUTQ.shift();scheduleQ()}
+  if(!DC||!DC.open){try{console.log('[FU] SEND DROPPED:',o)}catch(elog){};return}
+  try{DC.send(o)}catch(e){try{console.log('[FU] SEND FAIL:',o)}catch(elog){}}
 }
 function flushQ(){if(!DC||!DC.open||!OUTQ.length)return;var q=OUTQ;OUTQ=[];q.forEach(function(x){try{DC.send(x)}catch(e){OUTQ.push(x)}});if(OUTQ.length)scheduleQ()}
 function scheduleQ(){if(outT)return;outT=setTimeout(function(){outT=null;flushQ()},700)}
 (function(){var ci=$('cI');if(ci)ci.addEventListener('input',function(){var c=$('cMs');if(c)c.scrollTop=c.scrollHeight})})();
-function sendM(){var i=$('cI');var t=i.value.trim();if(!t||t.length>500)return;addM(t,'sent');sendData({t:'chat',m:t,n:(USER_NAME||'User').substr(0,30)});i.value=''}
-function addM(txt,tp,nm){var c=$('cMs');var d=document.createElement('div');d.className='m '+tp;var tm=new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});var pf=(nm&&tp==='recv')?'<strong>'+esc(nm)+':</strong> ':'';d.innerHTML=pf+esc(txt)+'<div class="tm">'+tm+'</div>';c.appendChild(d);c.scrollTop=c.scrollHeight}
+function sendM(){
+  var i=$('cI');var t=i.value.trim();
+  if(!t||!t.length)return;
+  if(t.length>500)return;
+  if(!DC||!DC.open){toast(t('toast_nochan'),'err');return}
+  var mid='m'+cryR(6);
+  addM(t,'sent',null,mid);
+  sendData({t:'chat',m:t,n:(USER_NAME||'User').substr(0,30),id:mid});
+  i.value='';
+}
+function addM(txt,tp,nm,mid){var c=$('cMs');var d=document.createElement('div');d.className='m '+tp;var tm=new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});var pf=(nm&&tp==='recv')?'<strong>'+esc(nm)+':</strong> ':'';var st=(tp==='sent'&&mid)?'<span class="ms" data-mid="'+esc(mid)+'">...</span>':'';d.innerHTML=pf+esc(txt)+'<div class="tm">'+tm+st+'</div>';c.appendChild(d);c.scrollTop=c.scrollHeight}
 
 function sendRx(e){if(typeof e!=='string'||e.length>8)return;flRx(e);sendData({t:'react',e:e})}
 function flRx(e){var b=$('va');var el=document.createElement('div');el.className='RXF';el.textContent=e;el.style.left=(20+Math.random()*60)+'%';el.style.bottom='80px';b.appendChild(el);setTimeout(function(){el.remove()},2300)}
