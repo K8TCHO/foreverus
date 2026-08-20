@@ -1092,12 +1092,19 @@ function triggerSync(){
 var rV=null;
 var scrTrack=null;
 function killV(v){if(!v)return;try{if(v.srcObject){v.srcObject.getTracks().forEach(function(t){t.stop()})}}catch(e){}}
+function audRetry(){
+  var aE=$('audR');if(!aE)return;
+  var fn=function(){try{aE.muted=false;aE.volume=1;var ap=aE.play();if(ap&&ap.catch)ap.catch(function(){})}catch(e){}};
+  fn();
+  document.addEventListener('touchstart',fn,{once:true});
+  document.addEventListener('click',fn,{once:true});
+}
 function setAud(s){
   var aE=$('audR');
   if(!aE){aE=document.createElement('audio');aE.id='audR';aE.autoplay=true;aE.playsInline=true;aE.volume=1;document.body.appendChild(aE)}
   try{
     var aud=s.getAudioTracks();
-    if(aud.length){aE.srcObject=new MediaStream(aud);aE.play().catch(function(){})}
+    if(aud.length){aE.srcObject=new MediaStream(aud);aE.muted=false;aE.volume=1;try{aE.play().catch(function(){audRetry()})}catch(e){audRetry()}}
     else{aE.srcObject=null;aE.pause()}
   }catch(e){console.error(e)}
 }
@@ -1216,7 +1223,7 @@ document.addEventListener('click',function(e){if(!e.target.closest('#qm')&&!e.ta
 
 var isIO=typeof navigator!=='undefined'&&/iPhone|iPad|iPod/i.test(navigator.userAgent);
 var SCN=!!(typeof navigator!=='undefined'&&navigator.mediaDevices&&navigator.mediaDevices.getDisplayMedia);
-function kickPlay(){try{var aE=$('audR');if(aE){aE.play().catch(function(){})}}catch(e){}try{var r=$('rV');if(r){r.play().catch(function(){})}}catch(e){}try{var sb=$('sbV');if(sb){sb.play().catch(function(){})}}catch(e){}}
+function kickPlay(){try{var aE=$('audR');if(aE){aE.muted=false;aE.volume=1;aE.play().catch(function(){})}}catch(e){}try{var r=$('rV');if(r){r.play().catch(function(){})}}catch(e){}try{var sb=$('sbV');if(sb){sb.play().catch(function(){})}}catch(e){}}
 
 (function(){var pp=$('pip'),lst=0;if(!pp)return;var f=function(e){if(e.preventDefault)e.preventDefault();var n=Date.now();if(n-lst<320){pp.classList.toggle('big');lst=0}else{lst=n}};pp.addEventListener('touchend',f,{passive:false});pp.addEventListener('dblclick',f)})();
 
@@ -1239,7 +1246,7 @@ document.addEventListener('click',kickPlay);
 if(!SCN){var bS=$('bS');if(bS){bS.style.display='none';bS.title=t('tip_screen')+' — indisponible sur ce navigateur (ouvre depuis un PC)'}}
 
 if(window.location.protocol==='file:'||window.location.hostname==='localhost'||window.location.hostname==='127.0.0.1')$('serverHelper').style.display='block';
-var VER='v22';
+var VER='v23';
 var dbgArr=[];var vTaps=0;
 function dbg(m){try{console.log('[FU] '+m)}catch(e){}try{dbgArr.push(new Date().toTimeString().substr(0,8)+' '+m);if(dbgArr.length>9)dbgArr.shift();var d=$('dbg');if(d){d.textContent=dbgArr.join('\n')}}catch(e){}}
 function tapVer(){vTaps++;if(vTaps>=5){vTaps=0;var d=$('dbg');if(d)d.classList.toggle('on')}}
