@@ -1008,20 +1008,21 @@ function doDC(c){DC=c;PEER_ID=c.peer;
   try{
     if(!d||typeof d!=='object')return;
     try{console.log('[FU] DATA RECEIVED:',d)}catch(elog){}
+    try{var tt=d.t||d.type;if(tt==='chat'||tt==='ack'||tt==='auth')dbg('rx '+(tt==='chat'?'chat '+String(d.m).slice(0,16):tt))}catch(elog){}
     lastRx=Date.now();
     if(d.type==='auth'){
-      if(d.token===SECRET){try{console.log('[FU] AUTH OK',c.peer)}catch(elog){};if(!CONNECTED_PEERS[c.peer]){CONNECTED_PEERS[c.peer]=true;flushQ();toast(t('toast_connect'),'ok')}}
+      if(d.token===SECRET){try{console.log('[FU] AUTH OK',c.peer)}catch(elog){};dbg('auth ok');if(!CONNECTED_PEERS[c.peer]){CONNECTED_PEERS[c.peer]=true;flushQ();toast(t('toast_connect'),'ok')}}
       else{try{console.log('[FU] AUTH FAIL',c.peer)}catch(elog){};try{c.close()}catch(e){}}
       return;
     }
     var mx=500;
     if(d.t==='chat'&&typeof d.m==='string'&&d.m.length<=mx&&typeof d.n==='string'&&d.n.length<30){
-      addM(d.m,'recv',d.n);
+      addM(d.m,'recv',d.n);dbg('chat recv');
       if(typeof d.id==='string'&&d.id.length<30){try{DC.send({t:'ack',id:d.id})}catch(ae){}}
       if(!chat){unread++;var bb=$('bChB');if(bb){bb.textContent=unread;bb.classList.add('on')}}
     }
     else if(d.t==='ack'&&typeof d.id==='string'&&d.id.length<30){
-      var el=document.querySelector('.ms[data-mid="'+d.id+'"]');if(el)el.textContent='\u2713';
+      var el=document.querySelector('.ms[data-mid="'+d.id+'"]');if(el)el.textContent='\u2713';dbg('ack ok');
     }
     else if(d.t==='react'&&typeof d.e==='string'&&d.e.length<8){flRx(d.e)}
     else if(d.t==='bye'){DC=null;dbg('BYE');onDC()}
@@ -1195,7 +1196,7 @@ function doSt(pc){var si=setInterval(async function(){if(!pc||pc.signalingState=
 function togCh(fOff){if(fOff===true){chat=false;$('chP').classList.remove('on');$('bCh').className='b';$('bCh').querySelector('.l').textContent='Chat';return}chat=!chat;$('chP').classList.toggle('on',chat);$('bCh').className=chat?'b on':'b';$('bCh').querySelector('.l').textContent=chat?'Chat ON':'Chat';if(chat){var vv=$('vc');if(vv&&vv.classList.contains('on')){vv.classList.remove('on');var bv2=$('bVC');if(bv2)bv2.classList.remove('on')}unread=0;var bb=$('bChB');if(bb){bb.classList.remove('on');bb.textContent='0'}$('cI').focus();$('cMs').scrollTop=$('cMs').scrollHeight}}
 var OUTQ=[];var outT=null;var unread=0;
 function sendData(o){
-  if(!DC||!DC.open){try{console.log('[FU] SEND DROPPED:',o)}catch(elog){};return}
+  if(!DC||!DC.open){try{console.log('[FU] SEND DROPPED:',o)}catch(elog){};dbg('CHAN OFF: drop');return}
   try{DC.send(o)}catch(e){try{console.log('[FU] SEND FAIL:',o)}catch(elog){}}
 }
 function flushQ(){if(!DC||!DC.open||!OUTQ.length)return;var q=OUTQ;OUTQ=[];q.forEach(function(x){try{DC.send(x)}catch(e){OUTQ.push(x)}});if(OUTQ.length)scheduleQ()}
@@ -1207,7 +1208,7 @@ function sendM(){
   if(t.length>500)return;
   if(!DC||!DC.open){toast(t('toast_nochan'),'err');return}
   var mid='m'+cryR(6);
-  addM(t,'sent',null,mid);
+  addM(t,'sent',null,mid);dbg('chat sent');try{console.log('[FU] CHAT SENT',mid)}catch(elog){}
   sendData({t:'chat',m:t,n:(USER_NAME||'User').substr(0,30),id:mid});
   i.value='';
 }
