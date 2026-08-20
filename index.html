@@ -730,7 +730,7 @@ var P,LS,SS,CC,DC,MID,REMOTE_NAME='',PEER_ID='',REMOTE_HOST='',camS=null,micS=nu
 var host=false,mic=false,cam=false,scr=false,chat=false;
 var micGranted=false,camGranted=false;
 var cStart,tInt,cQ='1080',pR=null;
-var IC={iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:stun2.l.google.com:19302'}],iceCandidatePoolSize:10};
+var IC={iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:stun2.l.google.com:19302'},{urls:['turn:openrelay.metered.ca:80','turn:openrelay.metered.ca:443','turns:openrelay.metered.ca:443'],username:'openrelayproject',credential:'openrelayproject'}],iceCandidatePoolSize:10};
 var VQ={'1080':{width:{ideal:1920},height:{ideal:1080},frameRate:{ideal:60},facingMode:'user'},'720':{width:{ideal:1280},height:{ideal:720},frameRate:{ideal:60},facingMode:'user'},'480':{width:{ideal:854},height:{ideal:480},frameRate:{ideal:30},facingMode:'user'},'360':{width:{ideal:640},height:{ideal:360},frameRate:{ideal:24},facingMode:'user'}};
 var AQ={echoCancellation:true,noiseSuppression:true,autoGainControl:true};
 
@@ -861,12 +861,14 @@ async function createRoom(){
     P=new Peer(MID,IC);
     P.on('open',function(){toast(t('toast_room_create')+' '+rn,'ok')});
     P.on('call',function(c){
-      if(!c.metadata||!c.metadata.token){c.close();return}
+      if(!c.metadata||!c.metadata.token||c.metadata.token!==SECRET){c.close();return}
+      if(PEER_ID&&c.peer!==PEER_ID){c.close();return}
+      if(!PEER_ID)PEER_ID=c.peer;
       REMOTE_NAME=(c.metadata.name||'User').substr(0,30);
       CC=c;c.answer(LS);c.on('stream',onR);c.on('close',function(){if(CC===c)onDC()});c.on('error',function(e){console.error(e)});if(c.peerConnection){doSt(c.peerConnection);boostRate(c.peerConnection)}
     });
     P.on('connection',function(c){doDC(c)});
-    P.on('disconnected',function(){$('stP').className='st w';$('stT').textContent=t('status_wait')});
+    P.on('disconnected',onSigLost);
     P.on('close',function(){onDC()});
     P.on('error',function(e){console.error(e);toast('Erreur: '+e.type,'err');setLd(b,false)});
   }catch(e){toast('Erreur de connexion','err');setLd(b,false)}
@@ -892,11 +894,13 @@ function doJoin(){
       doDC(c);
     });
     P.on('call',function(c){
-      if(!c.metadata||!c.metadata.token){c.close();return}
+      if(!c.metadata||!c.metadata.token||c.metadata.token!==SECRET){c.close();return}
+      if(PEER_ID&&c.peer!==PEER_ID){c.close();return}
+      if(!PEER_ID)PEER_ID=c.peer;
       REMOTE_NAME=(c.metadata.name||'User').substr(0,30);
       CC=c;c.answer(LS);c.on('stream',onR);c.on('close',function(){if(CC===c)onDC()});c.on('error',function(e){console.error(e)});if(c.peerConnection){doSt(c.peerConnection);boostRate(c.peerConnection)}
     });
-    P.on('disconnected',function(){$('stP').className='st w';$('stT').textContent=t('status_wait')});
+    P.on('disconnected',onSigLost);
     P.on('close',function(){onDC()});
     P.on('error',function(e){console.error(e);toast(t('toast_noroom'),'err');setLd(b,false)});
   }catch(e){toast('Erreur de connexion','err');setLd(b,false)}
@@ -919,6 +923,7 @@ function doDC(c){DC=c;PEER_ID=c.peer;
     if(!d||typeof d!=='object')return;
     if(d.type==='auth'){
       if(d.token===SECRET){if(!CONNECTED_PEERS[c.peer]){CONNECTED_PEERS[c.peer]=true;flushQ();toast(t('toast_connect'),'ok')}}
+      else{try{c.close()}catch(e){}}
       return;
     }
     var mx=500;
@@ -931,8 +936,25 @@ function doDC(c){DC=c;PEER_ID=c.peer;
     else if(d.t==='scr'){RST.scr=!!d.on;vcUpd();if(!d.on){$('scrB').classList.remove('on');var sb=$('sbV');if(sb)sb.remove();var b=$('sbF');if(b)b.remove()}}
   }catch(e){console.error('data',e)}
   });
-  c.on('close',function(){onDC()});
+  c.on('close',function(){if(DC===c)DC=null;onDC()});
   c.on('error',function(e){console.error(e);if(e.type==='peer-unavailable')toast(t('toast_noroom'),'err')});
+}
+
+function onSigLost(){
+  var dp=$('stP');if(dp)dp.className='st w';
+  var dT=$('stT');if(dT)dT.textContent=t('status_wait');
+  setTimeout(function(){
+    if(!P||P.destroyed)return;
+    try{if(P.disconnected)P.reconnect()}catch(e){}
+    if(!host&&(!DC||!DC.open)){
+      try{var c2=P.connect(REMOTE_HOST,{reliable:true,serialization:'json'});doDC(c2)}catch(e){}
+    }
+    if(DC&&DC.open){
+      try{DC.send({type:'auth',token:SECRET});flushQ()}catch(e){}
+      var ds=$('dcS');if(ds)ds.className='dcs on';
+    }
+    triggerSync();
+  },3000);
 }
 
 function triggerSync(){
@@ -953,6 +975,7 @@ function triggerSync(){
 }
 
 var rV=null;
+function killV(v){if(!v)return;try{if(v.srcObject){v.srcObject.getTracks().forEach(function(t){t.stop()})}}catch(e){}}
 function setAud(s){
   var aE=$('audR');
   if(!aE){aE=document.createElement('audio');aE.id='audR';aE.autoplay=true;aE.playsInline=true;aE.volume=1;document.body.appendChild(aE)}
@@ -981,7 +1004,7 @@ function onR(s){$('wO').style.display='none';$('ov').classList.add('on');
     if(sb){sb.srcObject=null;sb.remove();var b=$('sbF');if(b)b.remove()}
   }
   $('oN').textContent=REMOTE_NAME||USER_NAME||'User';$('oS').textContent=t('connected');$('stP').className='st on';$('stT').textContent=t('status_on');startT();vcUpd()}
-function onDC(){$('stP').className='st off';$('stT').textContent=t('status_off');$('oS').textContent=t('disconnected');stopT();CONNECTED_PEERS={};var ds=$('dcS');if(ds)ds.className='dcs off';var aE=$('audR');if(aE){aE.pause();aE.srcObject=null}if(rV){rV.srcObject=null;rV.remove();rV=null}if(scr)stopScr();RST={mic:false,cam:false,scr:false};$('va').classList.remove('scr-v');$('scrB').classList.remove('on');var sb=$('sbV');if(sb)sb.remove();var b=$('sbF');if(b)b.remove();vcUpd()}
+function onDC(){$('stP').className='st off';$('stT').textContent=t('status_off');$('oS').textContent=t('disconnected');stopT();CONNECTED_PEERS={};var ds=$('dcS');if(ds)ds.className='dcs off';var aE=$('audR');if(aE){killV(aE);aE.pause();aE.srcObject=null}if(rV){killV(rV);rV.srcObject=null;rV.remove();rV=null}if(scr)stopScr();RST={mic:false,cam:false,scr:false};$('va').classList.remove('scr-v');$('scrB').classList.remove('on');var sb=$('sbV');if(sb){killV(sb);sb.srcObject=null;sb.remove()}var b=$('sbF');if(b)b.remove();vcUpd()}
 
 var RST={mic:false,cam:false,scr:false};
 function vcUpd(){
@@ -1063,7 +1086,7 @@ document.addEventListener('keydown',function(e){
 document.querySelectorAll('.SB .b,.LB .B,.PM .B,.WT .cb').forEach(function(b){b.addEventListener('mousedown',ripple)});
 
 if(window.location.protocol==='file:'||window.location.hostname==='localhost'||window.location.hostname==='127.0.0.1')$('serverHelper').style.display='block';
-try{var dv=document.querySelector('.dt');if(dv)dv.textContent='v12'}catch(e){}
+try{var dv=document.querySelector('.dt');if(dv)dv.textContent='v13'}catch(e){}
 
 var savedLang=localStorage.getItem('iv-lang');
 if(savedLang&&TR[savedLang]){lang=savedLang;$('langSel').classList.add('hide');showMsg()}
