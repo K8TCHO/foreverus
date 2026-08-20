@@ -332,20 +332,24 @@ MN{flex:1;display:flex;overflow:hidden;position:relative}
 .SCRV.on{display:flex}
 .SCRV video{width:100%;height:100%;object-fit:contain}
 .SCRV .svc{position:absolute;top:14px;right:14px;width:42px;height:42px;border-radius:13px;border:none;background:rgba(255,255,255,.1);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.ver{display:inline-block;margin-top:10px;padding:4px 12px;border-radius:99px;background:rgba(123,108,246,.12);border:1px solid rgba(123,108,246,.25);color:var(--ac2);font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase}
 @media(max-width:640px){
+  HD{padding:8px 12px;gap:8px}
+  HD .mk{width:30px;height:30px;border-radius:9px}
+  HD .nm{font-size:12.5px}
+  HD .vcb{width:34px;height:34px}
+  HD .st{padding:4px 9px;font-size:9px}
   .LANG .opts{flex-direction:column;align-items:center}
   .LANG .opts button{width:200px}
   .CA.on{flex-direction:column}
-  .SB{width:100%;flex-direction:row;height:auto;padding:8px 10px calc(10px + env(safe-area-inset-bottom));border-left:none;border-top:1px solid var(--bd);flex-wrap:nowrap;justify-content:flex-start;gap:2px;overflow-x:auto;-webkit-overflow-scrolling:touch}
-  .SB .b{width:44px;height:44px;border-radius:12px;gap:2px;flex-shrink:0}
-  .SB .b svg{width:18px;height:18px}
-  .SB .b .l{font-size:6px}
+  .SB{width:100%;flex-direction:row;height:auto;align-items:center;justify-content:space-around;padding:6px 4px calc(8px + env(safe-area-inset-bottom));border-left:none;border-top:1px solid var(--bd);gap:2px}
+  .SB .b{width:56px;height:56px;border-radius:50%;gap:2px;flex-shrink:0}
+  .SB .b svg{width:20px;height:20px}
+  .SB .b .l{font-size:7.5px;font-weight:600}
   .SB .b .tip{display:none}
-  .SB .b.end{width:44px;height:44px;margin-top:0;flex-shrink:0}
-  .SB .rx{margin:0;flex-shrink:0}
-  .SB .rx button{width:28px;height:28px;font-size:13px}
-  .SB .sep{flex-shrink:0}
-  .VC{position:fixed;top:0;bottom:0;left:0;width:min(78vw,260px);transform:translateX(-100%);transition:transform .25s cubic-bezier(.4,0,.2,1);z-index:95;border-right:1px solid var(--bd)}
+  .SB .b.end{width:60px;height:60px;border-radius:50%;margin-top:0;background:rgba(255,68,102,.16);flex-shrink:0}
+  .SB .rx,.SB .b#bFS,.SB .b#bQ,.SB .sep{display:none}
+  .VC{position:fixed;top:0;bottom:0;left:0;width:min(80vw,300px);transform:translateX(-100%);transition:transform .25s cubic-bezier(.4,0,.2,1);z-index:95;border-right:1px solid var(--bd)}
   .VC.on{transform:translateX(0)}
   .vcb{display:flex}
   .VA .rv2.sb{width:min(150px,38vw);height:auto;aspect-ratio:16/9;bottom:10px;left:10px}
@@ -355,7 +359,7 @@ MN{flex:1;display:flex;overflow:hidden;position:relative}
   .CODE-BADGE{top:8px;left:8px;padding:6px 10px}
   .CODE-BADGE .cb-txt{font-size:9px;letter-spacing:1px}
   .CODE-BADGE .cb-lbl{display:none}
-  .QM{right:auto;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom));top:auto}
+  .QM{right:auto;left:50%;transform:translateX(-50%);bottom:calc(80px + env(safe-area-inset-bottom));top:auto;width:min(240px,90vw)}
   .QM.on{animation:qmi2 .2s ease}
   @keyframes qmi2{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%)}}
   .WT .code{font-size:16px;padding:10px 16px}
@@ -364,6 +368,15 @@ MN{flex:1;display:flex;overflow:hidden;position:relative}
   .LB .form{padding:20px 16px}
   .LB .av{width:72px;height:72px;font-size:26px}
   .LB h1{font-size:22px}
+}
+@media(max-width:920px) and (orientation:landscape){
+  .CA.on{flex-direction:row}
+  .SB{width:auto;flex-direction:column;padding:10px 6px;justify-content:flex-start;gap:4px}
+  .SB .b{width:50px;height:50px}
+  .SB .b.end{margin-top:auto}
+  .SB .rx,.SB .b#bFS,.SB .b#bQ,.SB .sep{display:none}
+  .VC{left:auto;right:0;width:min(60vw,280px);transform:translateX(100%)}
+  .VC.on{transform:translateX(0)}
 }
 </style>
 </head>
@@ -378,6 +391,7 @@ MN{flex:1;display:flex;overflow:hidden;position:relative}
       <button onclick="setLang('en')"><div class="flag">🇬🇧</div><div class="lname">English</div><div class="lcode">EN</div></button>
       <button onclick="setLang('es')"><div class="flag">🇪🇸</div><div class="lname">Espanol</div><div class="lcode">ES</div></button>
     </div>
+    <div class="ver" id="verL"></div>
   </div>
 </div>
 
@@ -435,6 +449,7 @@ MN{flex:1;display:flex;overflow:hidden;position:relative}
         <div class="av"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
         <h1 id="lobName">-</h1>
         <div class="sub" data-i18n="welcome_sub">Appel video prive haute qualite</div>
+        <div class="ver" id="verTxt"></div>
       </div>
       <div class="form">
         <div class="fg"><label data-i18n="label_room_name">Nom de la salle</label><input type="text" id="roomName" data-i18n-ph="placeholder_room_name" placeholder="Ex: movie, game, love..." maxlength="20" autocomplete="off"></div>
@@ -1109,7 +1124,8 @@ document.addEventListener('click',kickPlay);
 if(!SCN){var bS=$('bS');if(bS){bS.classList.add('no');bS.title=t('tip_screen')+' — indisponible sur ce navigateur (ouvre depuis Android Chrome ou un PC)'}}
 
 if(window.location.protocol==='file:'||window.location.hostname==='localhost'||window.location.hostname==='127.0.0.1')$('serverHelper').style.display='block';
-try{var dv=document.querySelector('.dt');if(dv)dv.textContent='v15'}catch(e){}
+var VER='v16';
+try{var ll=$('verL');if(ll)ll.textContent='ForeverUs '+VER;var vt=$('verTxt');if(vt)vt.textContent=VER;var dv=document.querySelector('.dt');if(dv)dv.textContent=VER}catch(e){}
 
 var savedLang=localStorage.getItem('iv-lang');
 if(savedLang&&TR[savedLang]){lang=savedLang;$('langSel').classList.add('hide');showMsg()}
