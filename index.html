@@ -696,6 +696,7 @@ fr: {
   toast_noroom:'Salle introuvable', toast_pwd_err:'Mot de passe incorrect',
   toast_copy:'Code copié !', toast_copy_err:'Échec copie',
   toast_hangup:'Appel terminé', toast_quality:'Qualité', toast_name_err:'Entrez un nom de salle',
+  toast_full:'Salon complet (2max)',
   overlay_waiting:'En attente...', overlay_share:'Partage le code pour te rejoindre',
   connected:'Connecté', disconnected:'Déconnecté',
   msg_title:'Un message pour toi', msg_close:'Fermer',
@@ -744,6 +745,7 @@ en: {
   toast_noroom:'Room not found', toast_pwd_err:'Wrong password',
   toast_copy:'Code copied !', toast_copy_err:'Copy failed',
   toast_hangup:'Call ended', toast_quality:'Quality', toast_name_err:'Enter a room name',
+  toast_full:'Room full (2 max)',
   overlay_waiting:'Waiting...', overlay_share:'Share the code to join',
   connected:'Connected', disconnected:'Disconnected',
   msg_title:'A message for you', msg_close:'Close',
@@ -792,6 +794,7 @@ es: {
   toast_noroom:'Sala no encontrada', toast_pwd_err:'Contraseña incorrecta',
   toast_copy:'Código copiado !', toast_copy_err:'Error al copiar',
   toast_hangup:'Llamada terminada', toast_quality:'Calidad', toast_name_err:'Ingresa un nombre de sala',
+  toast_full:'Sala llena (máx 2)',
   overlay_waiting:'Esperando...', overlay_share:'Comparte el código para unirte',
   connected:'Conectado', disconnected:'Desconectado',
   msg_title:'Un mensaje para ti', msg_close:'Cerrar',
@@ -1289,7 +1292,7 @@ async function createRoom() {
       c.on('error', function(e) { console.error(e); });
       if (c.peerConnection) { doSt(c.peerConnection); boostRate(c.peerConnection); }
     });
-    P.on('connection', function(c) { doDC(c); });
+    P.on('connection', function(c) { if (DC && DC.open) { try { c.on('open', function() { try { c.send({ type: 'full' }); } catch(e) {} setTimeout(function() { try { c.close(); } catch(e) {} }, 100); }); } catch(e) {} dbg('Rejected (room full): ' + c.peer); return; } doDC(c); });
     P.on('disconnected', onSigLost);
     P.on('close', function() { onDC(); });
     P.on('error', function(e) { console.error(e); toast('Erreur: ' + e.type, 'err'); setLd(b, false); });
@@ -1389,6 +1392,12 @@ function doDC(c) {
         } else {
           try { c.close(); } catch(e) {}
         }
+        return;
+      }
+      if (d.type === 'full') {
+        toast(t('toast_full'), 'err');
+        try { DC.close(); } catch(e) {}
+        DC = null;
         return;
       }
       if (d.t === 'chat' && typeof d.m === 'string' && d.m.length <= 500 && typeof d.n === 'string' && d.n.length < 30) {
