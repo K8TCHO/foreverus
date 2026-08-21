@@ -806,7 +806,7 @@ es: {
 //  UTILITAIRES
 // ============================================================
 var lang = 'fr';
-var VER = 'v34';
+var VER = 'v35';
 var $ = function(id) { return document.getElementById(id); };
 var t = function(k) { return TR[lang] && TR[lang][k] ? TR[lang][k] : (TR['fr'][k] || k); };
 
@@ -894,6 +894,7 @@ var outTimer = null;
 var unread = 0;
 var rV = null;
 var scrTrack = null;
+var SCR_REMOTE_ID = '';
 var lastRx = Date.now();
 var hbOn = false;
 var rcTimer = null;
@@ -1211,6 +1212,7 @@ async function reqS() {
     SS.getVideoTracks()[0].onended = function() {
       if (scr) {
         scr = false;
+        SCR_REMOTE_ID = '';
         if (SS) { SS.getTracks().forEach(function(t) { if (LS) LS.removeTrack(t); t.stop(); }); SS = null; }
         $('bS').className = 'b';
         $('bS').querySelector('.l').textContent = t('sb_screen');
@@ -1239,6 +1241,7 @@ async function reqS() {
       dbg('scr audio: ' + SS.getAudioTracks().length + ' pistes');
     }
     sendData({ t: 'scr', on: true });
+    try { sendData({ t: 'scrTrack', id: SS.getVideoTracks()[0].id }); } catch(e) {}
     sendData({ t: 'st', mic: mic, cam: cam, scr: scr });
     vcUpd();
   } catch(e) {
@@ -1421,8 +1424,12 @@ function doDC(c) {
         RST.cam = !!d.cam;
         RST.scr = !!d.scr;
         vcUpd();
+      } else if (d.t === 'scrTrack' && typeof d.id === 'string' && d.id.length < 60) {
+        SCR_REMOTE_ID = d.id;
+        dbg('scrTrack id: ' + d.id);
       } else if (d.t === 'scr') {
         RST.scr = !!d.on;
+        if (!d.on) SCR_REMOTE_ID = '';
         vcUpd();
         if (!d.on) {
           scrTrack = null;
@@ -1568,7 +1575,8 @@ function onR(s) {
     s.getVideoTracks().forEach(function(tr) {
       var st = tr.getSettings ? tr.getSettings() : {};
       var lb = (tr.label || '').toLowerCase();
-      if (st.displaySurface || lb.indexOf('screen') >= 0 || lb.indexOf('display') >= 0 || lb.indexOf('window') >= 0) srcs = tr;
+      var isScr = (SCR_REMOTE_ID && tr.id === SCR_REMOTE_ID) || st.displaySurface || lb.indexOf('screen') >= 0 || lb.indexOf('display') >= 0 || lb.indexOf('window') >= 0;
+      if (isScr) srcs = tr;
       else cams = tr;
     });
   } catch(e) {}
@@ -1695,6 +1703,7 @@ function onDC() {
   stopT();
   CONNECTED_PEERS = {};
   scrTrack = null;
+  SCR_REMOTE_ID = '';
   viewScrC();
   var ds = $('dcS');
   if (ds) ds.className = 'dcs off';
