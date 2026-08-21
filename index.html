@@ -798,7 +798,7 @@ es: {
 //  UTILITAIRES
 // ============================================================
 var lang = 'fr';
-var VER = 'v25';
+var VER = 'v26';
 var $ = function(id) { return document.getElementById(id); };
 var t = function(k) { return TR[lang] && TR[lang][k] ? TR[lang][k] : (TR['fr'][k] || k); };
 
@@ -1359,6 +1359,7 @@ function doDC(c) {
           if (!CONNECTED_PEERS[c.peer]) {
             CONNECTED_PEERS[c.peer] = true;
             flushQ();
+            try { DC.send({ type: 'auth', token: SECRET }); } catch(e) {}
             toast(t('toast_connect'), 'ok');
           }
         } else {
@@ -1663,18 +1664,18 @@ function kickPlay() {
 //  PLEIN ÉCRAN - CORRIGÉ
 // ============================================================
 function viewScr() {
-  var t = scrTrack;
-  if (!t) {
+  var track = scrTrack;
+  if (!track) {
     var sb = $('sbV');
-    if (sb && sb.srcObject) { var ts = sb.srcObject.getVideoTracks(); if (ts.length) t = ts[0]; }
+    if (sb && sb.srcObject) { var ts = sb.srcObject.getVideoTracks(); if (ts.length) track = ts[0]; }
   }
-  if (!t) {
-    if (rV && rV.srcObject) { var ts2 = rV.srcObject.getVideoTracks(); if (ts2.length) t = ts2[0]; }
+  if (!track) {
+    if (rV && rV.srcObject) { var ts2 = rV.srcObject.getVideoTracks(); if (ts2.length) track = ts2[0]; }
   }
-  if (!t) { toast(t('vc_noscr'), 'err'); return; }
+  if (!track) { toast(t('vc_noscr'), 'err'); return; }
   
   var v = $('svV');
-  v.srcObject = new MediaStream([t]);
+  v.srcObject = new MediaStream([track]);
   v.play().catch(function() {});
   $('scrV').classList.add('on');
   
@@ -2128,4 +2129,4 @@ console.log('💗 ForeverUs ' + VER + ' chargé avec succès.');
 console.log('📞 Raccourcis: M=Micro, V=Caméra, S=Écran, C=Chat, F=Plein écran, Q=Qualité');
 </script>
 </body>
-<!-- </html> -->
+</html>
