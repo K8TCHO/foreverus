@@ -803,7 +803,7 @@ es: {
 //  UTILITAIRES
 // ============================================================
 var lang = 'fr';
-var VER = 'v29c';
+var VER = 'v30';
 var $ = function(id) { return document.getElementById(id); };
 var t = function(k) { return TR[lang] && TR[lang][k] ? TR[lang][k] : (TR['fr'][k] || k); };
 
@@ -1003,21 +1003,18 @@ function scheduleFlush() {
 // ============================================================
 //  CHAT - CORRIGÉ
 // ============================================================
-var chatQ = [];
 function sendM() {
   var input = $('cI');
   var txt = input.value.trim();
   if (!txt || txt.length > 500) return;
+  if (!DC || !DC.open) {
+    toast(t('toast_nochan'), 'err');
+    if (!host && P && !P.destroyed) tryData();
+    return;
+  }
   var mid = 'm' + cryR(6);
   addM(txt, 'sent', null, mid);
-  var msg = { t: 'chat', m: txt, n: (USER_NAME || 'User').substr(0, 30), id: mid };
-  if (!DC || !DC.open) {
-    dbg('sendM: DC pas ouvert, queued');
-    chatQ.push(msg);
-    if (!host && P && !P.destroyed) tryData();
-  } else {
-    sendData(msg);
-  }
+  sendData({ t: 'chat', m: txt, n: (USER_NAME || 'User').substr(0, 30), id: mid });
   input.value = '';
   dbg('chat sent: ' + txt.substr(0, 30));
 }
@@ -1365,7 +1362,6 @@ function doDC(c) {
     dbg('DC open!');
     c.send({ type: 'auth', token: SECRET });
     flushQ();
-    while (chatQ.length) { sendData(chatQ.shift()); }
     if (ds) ds.className = 'dcs on';
     $('wO').style.display = 'none';
     $('ov').classList.add('on');
@@ -1538,7 +1534,8 @@ function onR(s) {
   try {
     s.getVideoTracks().forEach(function(tr) {
       var st = tr.getSettings ? tr.getSettings() : {};
-      if (st.displaySurface) srcs = tr;
+      var lb = (tr.label || '').toLowerCase();
+      if (st.displaySurface || lb.indexOf('screen') >= 0 || lb.indexOf('display') >= 0 || lb.indexOf('window') >= 0) srcs = tr;
       else cams = tr;
     });
   } catch(e) {}
@@ -1720,6 +1717,12 @@ function viewScr() {
   if (!track) {
     if (rV && rV.srcObject) { var ts2 = rV.srcObject.getVideoTracks(); if (ts2.length) track = ts2[0]; }
   }
+  if (!track && CC && CC.peerConnection) {
+    var rs = CC.peerConnection.getReceivers ? CC.peerConnection.getReceivers() : [];
+    for (var i = 0; i < rs.length; i++) {
+      if (rs[i].track && rs[i].track.kind === 'video') { track = rs[i].track; break; }
+    }
+  }
   if (!track) { toast(t('vc_noscr'), 'err'); return; }
   
   var v = $('svV');
@@ -1899,7 +1902,6 @@ function hangUp() {
   if (P) { P.destroy(); P = null; }
   if (LS) { LS.getTracks().forEach(function(t) { t.stop(); }); LS = null; }
   if (SS) { SS.getTracks().forEach(function(t) { t.stop(); }); SS = null; }
-  chatQ = [];
   stopT();
   if (rV) { rV.srcObject = null; rV.remove(); rV = null; }
   toLob();
