@@ -404,6 +404,8 @@ MN{flex:1;display:flex;overflow:hidden;position:relative}
 .m .ms{font-size:9px;margin-left:5px;opacity:.7;color:#8affb0;font-weight:700}
 .unlSnd{position:absolute;bottom:70px;left:50%;transform:translateX(-50%);z-index:17;padding:10px 16px;border:none;border-radius:999px;background:linear-gradient(135deg,#ff6eb4,#a84dff);color:#fff;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.4);animation:unlP 1.2s infinite}
 @keyframes unlP{0%,100%{box-shadow:0 4px 18px rgba(0,0,0,.4)}50%{box-shadow:0 4px 26px rgba(255,110,180,.55)}}
+.AWARN{position:absolute;top:50px;left:50%;transform:translateX(-50%);z-index:16;padding:6px 14px;border-radius:99px;background:rgba(255,68,102,.14);border:1px solid rgba(255,68,102,.35);color:#ffb3c2;font-size:9.5px;font-weight:700;display:none;align-items:center;gap:6px;backdrop-filter:blur(8px)}
+.AWARN.on{display:flex}
 </style>
 </head>
 <body>
@@ -540,6 +542,7 @@ MN{flex:1;display:flex;overflow:hidden;position:relative}
         <button class="cb-cp" onclick="event.stopPropagation();copyCd()" data-i18n="btn_copy">Copier</button>
       </div>
       <div class="SCR-B" id="scrB"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/></svg> ECRAN 1080p60</div>
+      <div class="AWARN" id="aWarn"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg> <span id="aWarnTxt">Pas de son partagé</span></div>
       <div class="OV" id="ov"><div class="n" id="oN">-</div><div class="s" id="oS">En attente</div><div class="t" id="oT"></div></div>
       <div class="WT" id="wO">
         <div class="sp"></div>
@@ -679,11 +682,13 @@ fr:{
   toast_cam_on:'Camera activee',toast_cam_off:'Camera coupee',toast_cam_err:'Camera refusee',
   toast_scr_on:'Ecran 1080p60 actif',toast_scr_off:'Ecran arrete',toast_scr_err:'Ecran annule',
   toast_scr_nosupport:'Partage d\'ecran non supporte',toast_scr_needhost:'Ouvre via localhost pour le partage d\'ecran',
+  toast_scr_noaudio:'Astuce : coche "Partager l\'audio de l\'onglet" pour que je t\'entende',
   toast_room_create:'Salle creee',toast_connect:'Connecte !',toast_noroom:'Salle introuvable',toast_pwd_err:'Mot de passe incorrect',
   toast_copy:'Code copie !',toast_copy_err:'Echec copie',toast_hangup:'Appel termine',
   toast_quality:'Qualite',toast_name_err:'Entrez un nom de salle',
   overlay_waiting:'En attente...',overlay_share:'Partage le code pour te rejoindre',
   connected:'Connecte',disconnected:'Deconnecte',
+  aw_noaudio:'Pas de son partagé',
   msg_title:'Un message pour toi',msg_close:'Fermer',
   msg_p1:"<p><em>Ce site, je l'ai cr\u00e9e pour toi.</em></p><p>Pour qu'on ait notre petit coin \u00e0 nous. Un endroit o\u00f9 le temps s'arr\u00eate un peu, o\u00f9 la distance dispara\u00eet, et o\u00f9 il ne reste plus qu'une chose : <strong>nous deux.</strong></p><p>Je l'ai cr\u00e9\u00e9 pour qu'on puisse partager nos films, nos s\u00e9ries, nos rires et m\u00eame nos silences complices. Pour qu'\u00e0 travers un \u00e9cran, on puisse vivre les m\u00eames \u00e9motions au m\u00eame moment, comme si on \u00e9tait blottis l'un contre l'autre, sur le m\u00eame canap\u00e9.</p><p>Chaque film qu'on regardera ici deviendra un souvenir. Chaque s\u00e9rie qu'on encha\u00eenera deviendra une histoire de plus qu'on aura v\u00e9cue ensemble.</p><p>Parce qu'au fond, peu importe ce qu'on regarde. <strong>L'important, c'est toi, \u00e0 l'autre bout de l'\u00e9cran, avec moi.</strong></p><p>Je voulais qu'on ait toujours un endroit o\u00f9 se retrouver. Un petit refuge rien qu'\u00e0 nous, o\u00f9 la distance n'a plus vraiment d'importance et où seul compte le moment qu'on partage.</p><p>Alors installe-toi, prends ton snack pr\u00e9f\u00e9r\u00e9, choisis ce qu'on va regarder\u2026</p><p>Et laisse-moi te faire voyager \u00e0 travers toutes ces histoires, en attendant de pouvoir les vivre pour de vrai, <strong>\u00e0 tes c\u00f4t\u00e9s.</strong></p><p class='sig'>Je t'aime, Victoria.</p><p>Et chaque film qu'on regardera ensemble sera un souvenir de plus, une histoire de plus, et une preuve de plus que tu es la personne avec qui je veux tout vivre :> <span class='heart-end'>&#10084;&#65039;</span></p>"
 },
@@ -718,11 +723,13 @@ en:{
   toast_cam_on:'Camera enabled',toast_cam_off:'Camera disabled',toast_cam_err:'Camera denied',
   toast_scr_on:'Screen 1080p60 active',toast_scr_off:'Screen stopped',toast_scr_err:'Screen cancelled',
   toast_scr_nosupport:'Screen share not supported',toast_scr_needhost:'Open via localhost for screen share',
+  toast_scr_noaudio:'Tip: check "Share tab audio" so I can hear it',
   toast_room_create:'Room created',toast_connect:'Connected !',toast_noroom:'Room not found',toast_pwd_err:'Wrong password',
   toast_copy:'Code copied !',toast_copy_err:'Copy failed',toast_hangup:'Call ended',
   toast_quality:'Quality',toast_name_err:'Enter a room name',
   overlay_waiting:'Waiting...',overlay_share:'Share the code to join',
   connected:'Connected',disconnected:'Disconnected',
+  aw_noaudio:'No shared audio',
   msg_title:'A message for you',msg_close:'Close',
   msg_p1:"<p><em>I created this site for you.</em></p><p>So we'd have our own little corner. A place where time stops for a little while, where distance disappears, and where only one thing remains: <strong>the two of us.</strong></p><p>I made it so we could share our movies, our series, our laughter and even our knowing silences. So that through a screen, we could feel the same emotions at the same time, as if we were snuggled up together on the same couch.</p><p>Every movie we watch here will become a memory. Every series we binge will become another story we lived together.</p><p>Because deep down, it doesn't matter what we watch. <strong>What matters is you, on the other end of the screen, with me.</strong></p><p>I wanted us to always have a place to come back to. A little refuge just for us, where distance doesn't really matter and only the moment we share counts.</p><p>So settle in, grab your favorite snack, pick what we're going to watch\u2026</p><p>And let me take you through all these stories, while waiting to live them for real, <strong>by your side.</strong></p><p class='sig'>I love you, Victoria.</p><p>And every movie we watch together will be one more memory, one more story, and one more proof that you are the person I want to experience everything with :> <span class='heart-end'>&#10084;&#65039;</span></p>"
 },
@@ -757,11 +764,13 @@ es:{
   toast_cam_on:'Camara activada',toast_cam_off:'Camara desactivada',toast_cam_err:'Camara denegada',
   toast_scr_on:'Pantalla 1080p60 activa',toast_scr_off:'Pantalla detenida',toast_scr_err:'Pantalla cancelada',
   toast_scr_nosupport:'Compartir pantalla no soportado',toast_scr_needhost:'Abre via localhost para compartir pantalla',
+  toast_scr_noaudio:'Consejo: marca "Compartir audio de la pestaña" para que se escuche',
   toast_room_create:'Sala creada',toast_connect:'Conectado !',toast_noroom:'Sala no encontrada',toast_pwd_err:'Contrasena incorrecta',
   toast_copy:'Codigo copiado !',toast_copy_err:'Error al copiar',toast_hangup:'Llamada terminada',
   toast_quality:'Calidad',toast_name_err:'Ingresa un nombre de sala',
   overlay_waiting:'Esperando...',overlay_share:'Comparte el codigo para unirte',
   connected:'Conectado',disconnected:'Desconectado',
+  aw_noaudio:'Sin audio compartido',
   msg_title:'Un mensaje para ti',msg_close:'Cerrar',
   msg_p1:"<p><em>Cre este sitio para ti.</em></p><p>Para que tuvi\u00e9ramos nuestro peque\u00f1o rinc\u00f3n. Un lugar donde el tiempo se detiene un poco, donde la distancia desaparece, y donde solo queda una cosa: <strong>los dos.</strong></p><p>Lo hice para que pudi\u00e9ramos compartir nuestras pel\u00edculas, nuestras series, nuestras risas y hasta nuestros silencios c\u00f3mplices. Para que a trav\u00e9s de una pantalla, podamos vivir las mismas emociones al mismo momento, como si estuvi\u00e9ramos acurrucados el uno contra el otro, en el mismo sof\u00e1.</p><p>Cada pel\u00edcula que veamos aqu\u00ed se convertir\u00e1 en un recuerdo. Cada serie que sigamos ser\u00e1 una historia m\u00e1s que hayamos vivido juntos.</p><p>Porque al final, no importa lo que veamos. <strong>Lo importante eres t\u00fa, al otro lado de la pantalla, conmigo.</strong></p><p>Quer\u00eda que siempre tuvi\u00e9ramos un lugar al que volver. Un peque\u00f1o refugio solo para nosotros, donde la distancia no importa realmente y solo cuenta el momento que compartimos.</p><p>As\u00ed que c\u00f3modate, toma tu snack favorito, elige lo que vamos a ver\u2026</p><p>Y d\u00e9jame llevarte a trav\u00e9s de todas estas historias, esperando poder vivirlas de verdad, <strong>a tu lado.</strong></p><p class='sig'>Te quiero, Victoria.</p><p>Y cada pel\u00edcula que veamos juntos ser\u00e1 un recuerdo m\u00e1s, una historia m\u00e1s, y una prueba m\u00e1s de que eres la persona con quien quiero vivir todo :> <span class='heart-end'>&#10084;&#65039;</span></p>"
 }
@@ -787,8 +796,8 @@ var host=false,mic=false,cam=false,scr=false,chat=false;
 var micGranted=false,camGranted=false;
 var cStart,tInt,cQ='1080',pR=null;
 var IC={iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:stun2.l.google.com:19302'},{urls:['turn:openrelay.metered.ca:80','turn:openrelay.metered.ca:443','turns:openrelay.metered.ca:443'],username:'openrelayproject',credential:'openrelayproject'}],iceCandidatePoolSize:10};
-var VQ={'1080':{width:{ideal:1920},height:{ideal:1080},frameRate:{ideal:60},facingMode:'user'},'720':{width:{ideal:1280},height:{ideal:720},frameRate:{ideal:60},facingMode:'user'},'480':{width:{ideal:854},height:{ideal:480},frameRate:{ideal:30},facingMode:'user'},'360':{width:{ideal:640},height:{ideal:360},frameRate:{ideal:24},facingMode:'user'}};
-var AQ={echoCancellation:true,noiseSuppression:true,autoGainControl:true};
+var VQ={'1080':{width:{ideal:1920,min:1280},height:{ideal:1080,min:720},frameRate:{ideal:60,min:30},facingMode:'user'},'720':{width:{ideal:1280},height:{ideal:720},frameRate:{ideal:60},facingMode:'user'},'480':{width:{ideal:854},height:{ideal:480},frameRate:{ideal:30},facingMode:'user'},'360':{width:{ideal:640},height:{ideal:360},frameRate:{ideal:24},facingMode:'user'}};
+var AQ={echoCancellation:true,noiseSuppression:true,autoGainControl:true,sampleRate:48000,channelCount:2};
 
 var $=function(i){return document.getElementById(i)};
 var esc=function(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML};
@@ -815,12 +824,11 @@ function gRm(){return cryR(8).toUpperCase()}
 var SECRET=cryR(20);
 var CONNECTED_PEERS={};
 var RATE={last:0,max:5,wait:3000};
-var _t=0;
-function canRate(){var n=Date.now();if(n-RATE.last<RATE.wait&&RATE.max<=0)return false;RATE.last=n;RATE.max--;setTimeout(function(){RATE.max=5},RATE.wait);return true}
+function canRate(){var n=Date.now();if(n-RATE.last<RATE.wait&&RATE.max<=0)return false;if(n-RATE.last>=RATE.wait)RATE.max=5;RATE.last=n;RATE.max--;return true}
 function setLd(b,on){if(on){b.classList.add('ld');b.disabled=true}else{b.classList.remove('ld');b.disabled=false}}
 function ripple(e){var b=e.currentTarget;var r=b.getBoundingClientRect();var x=e.clientX-r.left;var y=e.clientY-r.top;b.style.setProperty('--rx',x+'px');b.style.setProperty('--ry',y+'px')}
 
-function askP(t,d,c,h){return new Promise(function(r){pR=r;$('pmI').className='ico '+c;$('pmI').innerHTML=h;$('pmT').textContent=t;$('pmD').textContent=d;$('pbg').classList.add('on')})}
+function askP(ti,d,c,h){return new Promise(function(r){pR=r;$('pmI').className='ico '+c;$('pmI').innerHTML=h;$('pmT').textContent=ti;$('pmD').textContent=d;$('pbg').classList.add('on')})}
 function pO(){$('pbg').classList.remove('on');if(pR){var r=pR;pR=null;r(true)}}
 function pD(){$('pbg').classList.remove('on');if(pR){var r=pR;pR=null;r(false)}}
 
@@ -830,11 +838,14 @@ var cOn='<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" h
 var cOff='<line x1="1" y1="1" x2="23" y2="23"/><path d="M21 21H3a2 2 0 01-2-2V8a2 2 0 012-2h3m3-3h6l2 3h4a2 2 0 012 2v9.34m-7.72-2.06L9.34 13.5"/>';
 var SCRV='<rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>';
 function boostRate(pc){
-  try{if(!pc)return;pc.getSenders().forEach(function(sd){if(sd.track&&sd.track.kind==='video'){try{var p=sd.getParameters();if(!p.encodings||!p.encodings.length)p.encodings=[{}];p.encodings.forEach(function(e){e.maxBitrate=15000000});sd.setParameters(p).catch(function(){})}catch(e){}}})}catch(e){}
+  try{if(!pc)return;pc.getSenders().forEach(function(sd){
+    if(sd.track&&sd.track.kind==='video'){try{var p=sd.getParameters();if(!p.encodings||!p.encodings.length)p.encodings=[{}];p.encodings.forEach(function(e){e.maxBitrate=15000000;e.priority='high'});sd.setParameters(p).catch(function(){})}catch(e){}}
+    if(sd.track&&sd.track.kind==='audio'){try{var p2=sd.getParameters();if(!p2.encodings||!p2.encodings.length)p2.encodings=[{}];p2.encodings.forEach(function(e){e.maxBitrate=256000});sd.setParameters(p2).catch(function(){})}catch(e){}}
+  })}catch(e){}
 }
 
 async function reqM(){
-  if(mic){mic=false;if(micS){micS.getTracks().forEach(function(t){t.stop()});micS=null}if(LS)LS.getAudioTracks().forEach(function(t){LS.removeTrack(t)});$('bM').className='b off';$('bM').querySelector('.l').textContent=t('sb_mic_off');$('iM').innerHTML=mOff;vcUpd();sendData({t:'st',mic:mic,cam:cam,scr:scr});triggerSync();return}
+  if(mic){mic=false;if(micS){micS.getTracks().forEach(function(t){t.stop()});micS=null}if(LS)LS.getAudioTracks().forEach(function(tr){LS.removeTrack(tr)});$('bM').className='b off';$('bM').querySelector('.l').textContent=t('sb_mic_off');$('iM').innerHTML=mOff;vcUpd();sendData({t:'st',mic:mic,cam:cam,scr:scr});triggerSync();return}
   var s=null;
   try{s=await navigator.mediaDevices.getUserMedia({audio:AQ})}
   catch(e){
@@ -842,8 +853,8 @@ async function reqM(){
     try{s=await navigator.mediaDevices.getUserMedia({audio:AQ})}catch(e2){toast(t('toast_mic_err')+(isIO?' '+t('perm_ios'):''),'err');return}
   }
   if(!LS)LS=new MediaStream();
-  LS.getAudioTracks().forEach(function(t){LS.removeTrack(t)});
-  s.getAudioTracks().forEach(function(t){LS.addTrack(t)});
+  LS.getAudioTracks().forEach(function(tr){LS.removeTrack(tr)});
+  s.getAudioTracks().forEach(function(tr){LS.addTrack(tr)});
   micS=s;
   mic=true;$('bM').className='b on';$('bM').querySelector('.l').textContent=t('sb_mic_on');$('iM').innerHTML=mOn;toast(t('toast_mic_on'),'ok');
   vcUpd();sendData({t:'st',mic:mic,cam:cam,scr:scr});
@@ -856,7 +867,7 @@ function camGet(){
   return next();
 }
 async function reqC(){
-  if(cam){cam=false;if(camS){camS.getTracks().forEach(function(t){t.stop()});camS=null}if(LS)LS.getVideoTracks().forEach(function(t){LS.removeTrack(t)});$('lV').srcObject=LS;$('pipE').style.display='flex';$('bC').className='b off';$('bC').querySelector('.l').textContent=t('sb_cam_off');$('iC').innerHTML=cOff;vcUpd();sendData({t:'st',mic:mic,cam:cam,scr:scr});triggerSync();return}
+  if(cam){cam=false;if(camS){camS.getTracks().forEach(function(t){t.stop()});camS=null}if(LS)LS.getVideoTracks().forEach(function(tr){LS.removeTrack(tr)});$('lV').srcObject=LS;$('pipE').style.display='flex';$('bC').className='b off';$('bC').querySelector('.l').textContent=t('sb_cam_off');$('iC').innerHTML=cOff;vcUpd();sendData({t:'st',mic:mic,cam:cam,scr:scr});triggerSync();return}
   var s=null;
   try{s=await camGet()}
   catch(e){
@@ -864,8 +875,8 @@ async function reqC(){
     try{s=await camGet()}catch(e2){toast(t('toast_cam_err')+(isIO?' '+t('perm_ios'):''),'err');return}
   }
   if(!LS)LS=new MediaStream();
-  LS.getVideoTracks().forEach(function(t){LS.removeTrack(t)});
-  s.getVideoTracks().forEach(function(t){LS.addTrack(t)});
+  LS.getVideoTracks().forEach(function(tr){LS.removeTrack(tr)});
+  s.getVideoTracks().forEach(function(tr){LS.addTrack(tr)});
   camS=s;
   cam=true;$('lV').srcObject=LS;$('pipE').style.display='none';$('bC').className='b on';$('bC').querySelector('.l').textContent=t('sb_cam_on');$('iC').innerHTML=cOn;toast(t('toast_cam_on'),'ok');
   vcUpd();sendData({t:'st',mic:mic,cam:cam,scr:scr});
@@ -879,9 +890,10 @@ function retryScr(){
   setTimeout(async function(){
     if(!P||P.destroyed||!DC||!DC.open||!LS||scr)return;
     try{
-      var s2=await navigator.mediaDevices.getDisplayMedia({video:{cursor:'always',width:{ideal:1920,max:1920},height:{ideal:1080,max:1080},frameRate:{ideal:30,max:30}},audio:true});
+      var s2=await navigator.mediaDevices.getDisplayMedia({video:{cursor:'always',width:{ideal:1920,max:1920},height:{ideal:1080,max:1080},frameRate:{ideal:60,max:60}},audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
       SS=s2;
-      SS.getTracks().forEach(function(t){if(LS)LS.addTrack(t)});
+      SS.getTracks().forEach(function(tr){if(LS)LS.addTrack(tr)});
+      checkScrAudio();
       SS.getVideoTracks()[0].onended=function(){if(_uStop){_uStop=false;stopScr()}else{retryScr()}};
       scr=true;sRetry=0;
       $('bS').className='b on';$('bS').querySelector('.l').textContent=t('sb_screen_on');$('scrB').classList.add('on');$('pip').classList.add('scr');$('lV').srcObject=SS;$('pipE').style.display='none';
@@ -900,10 +912,11 @@ async function reqS(){
     return
   }
   try{
-    SS=await navigator.mediaDevices.getDisplayMedia({video:{cursor:'always',width:{ideal:1920,max:1920},height:{ideal:1080,max:1080},frameRate:{ideal:30,max:30}},audio:true});
-    try{dbg('scrA '+(SS&&SS&&SS.getAudioTracks().length?'y':'n'))}catch(elog){}
-    SS.getTracks().forEach(function(t){if(LS)LS.addTrack(t)});
+    SS=await navigator.mediaDevices.getDisplayMedia({video:{cursor:'always',width:{ideal:1920,max:1920},height:{ideal:1080,max:1080},frameRate:{ideal:60,max:60}},audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+    try{dbg('scrA '+(SS&&SS.getAudioTracks().length?'y':'n'))}catch(elog){}
+    SS.getTracks().forEach(function(tr){if(LS)LS.addTrack(tr)});
     scr=true;sRetry=0;dbg('scr start');$('bS').className='b on';$('bS').querySelector('.l').textContent=t('sb_screen_on');$('scrB').classList.add('on');$('pip').classList.add('scr');$('lV').srcObject=SS;$('pipE').style.display='none';
+    checkScrAudio();
     SS.getVideoTracks()[0].onended=function(){if(_uStop){_uStop=false;stopScr()}else{retryScr()}};
     triggerSync();
     sendData({t:'scr',on:true});
@@ -916,7 +929,11 @@ async function reqS(){
     else{toast(t('toast_scr_nosupport'),'err')}
   }
 }
-function stopScr(){scr=false;$('bS').className='b';$('bS').querySelector('.l').textContent=t('sb_screen');$('scrB').classList.remove('on');$('pip').classList.remove('scr');if(SS){SS.getTracks().forEach(function(t){if(LS)LS.removeTrack(t);t.stop()});SS=null}if(LS.getVideoTracks().length){$('lV').srcObject=LS}else{$('lV').srcObject=null;$('pipE').style.display='flex'}sendData({t:'scr',on:false});sendData({t:'st',mic:mic,cam:cam,scr:scr});vcUpd();triggerSync()}
+function checkScrAudio(){
+  if(!SS||!SS.getAudioTracks().length){toast(t('toast_scr_noaudio'),'err')}
+  triggerSync();
+}
+function stopScr(){scr=false;$('bS').className='b';$('bS').querySelector('.l').textContent=t('sb_screen');$('scrB').classList.remove('on');$('pip').classList.remove('scr');if(SS){SS.getTracks().forEach(function(tr){if(LS)LS.removeTrack(tr);tr.stop()});SS=null}if(LS.getVideoTracks().length){$('lV').srcObject=LS}else{$('lV').srcObject=null;$('pipE').style.display='flex'}sendData({t:'scr',on:false});sendData({t:'st',mic:mic,cam:cam,scr:scr});vcUpd();triggerSync()}
 
 async function createRoom(){
   if(!canRate()){toast('Trop de tentatives, attends...','err');return}
@@ -1102,7 +1119,8 @@ function triggerSync(){
 
 var rV=null;
 var scrTrack=null;
-function killV(v){if(!v)return;try{if(v.srcObject){v.srcObject.getTracks().forEach(function(t){t.stop()})}}catch(e){}}
+var audioCtx=null;
+function killV(v){if(!v)return;try{if(v.srcObject){v.srcObject.getTracks().forEach(function(tr){tr.stop()})}}catch(e){}}
 function audRetry(){
   var aE=$('audR');if(!aE)return;
   var u=$('unlSnd');
@@ -1117,13 +1135,27 @@ function setAud(s){
   if(!aE){aE=document.createElement('audio');aE.id='audR';aE.autoplay=true;aE.playsInline=true;aE.volume=1;document.body.appendChild(aE)}
   try{
     var aud=s.getAudioTracks();
-    if(aud.length){aE.srcObject=new MediaStream(aud);aE.muted=false;aE.volume=1;dbg('aud '+aud.length);try{aE.play().catch(function(){audRetry()})}catch(e){audRetry()}}
-    else{aE.srcObject=null;aE.pause()}
+    if(aud.length===0){aE.srcObject=null;aE.pause();dbg('aud 0');return}
+    if(aud.length===1){
+      aE.srcObject=new MediaStream(aud);aE.muted=false;aE.volume=1;dbg('aud 1 track');
+      try{aE.play().catch(function(){audRetry()})}catch(e){audRetry()}
+      return;
+    }
+    // Plusieurs pistes audio (micro + son d'écran) : un <audio> ne joue en général
+    // que la première piste, donc on les mixe via Web Audio API pour tout entendre.
+    if(!audioCtx){audioCtx=new (window.AudioContext||window.webkitAudioContext)()}
+    if(audioCtx.state==='suspended'){audioCtx.resume().catch(function(){})}
+    var dest=audioCtx.createMediaStreamDestination();
+    aud.forEach(function(track){
+      try{var src=audioCtx.createMediaStreamSource(new MediaStream([track]));src.connect(dest)}catch(e){}
+    });
+    aE.srcObject=dest.stream;aE.muted=false;aE.volume=1;dbg('aud '+aud.length+' tracks mixed');
+    try{aE.play().catch(function(){audRetry()})}catch(e){audRetry()}
   }catch(e){console.error(e)}
 }
 function onR(s){$('wO').style.display='none';$('ov').classList.add('on');
   var cams=null,srcs=null;try{s.getVideoTracks().forEach(function(tr){var st=tr.getSettings?tr.getSettings():{};if(st.displaySurface)srcs=tr;else cams=tr})}catch(e){}
-  dbg('stream v='+(srcs?'scr ':'')+(cams?'cam ':'')+'aud='+(s.getAudioTracks().length>0?'y':'n'));
+  dbg('stream v='+(srcs?'scr ':'')+(cams?'cam ':'')+'aud='+(s.getAudioTracks().length>0?s.getAudioTracks().length:'n'));
   setAud(s);
   var main=null;
   if(cams){main=cams}
@@ -1136,6 +1168,7 @@ function onR(s){$('wO').style.display='none';$('ov').classList.add('on');
   $('scrB').classList.toggle('on',!!srcs);
   scrTrack=srcs||null;
   RST.scr=!!srcs;
+  var aw=$('aWarn');if(aw)aw.classList.toggle('on',!!srcs&&s.getAudioTracks().length===0);
   var sb=$('sbV');
   if(srcs&&cams){
     if(!sb){
@@ -1148,7 +1181,7 @@ function onR(s){$('wO').style.display='none';$('ov').classList.add('on');
   }
   pillUp();
   $('oN').textContent=REMOTE_NAME||USER_NAME||'User';$('oS').textContent=t('connected');$('stP').className='st on';$('stT').textContent=t('status_on');startT();setTimeout(kickPlay,50);vcUpd()}
-function onDC(){dbg('DISCONNECT');try{if(DC&&DC.open){DC.send({t:'bye'})}}catch(e){}try{if(CC&&CC.open){CC.close()}}catch(e){}$('stP').className='st off';$('stT').textContent=t('status_off');$('oS').textContent=t('disconnected');stopT();CONNECTED_PEERS={};scrTrack=null;viewScrC();var ds=$('dcS');if(ds)ds.className='dcs off';var aE=$('audR');if(aE){killV(aE);aE.pause();aE.srcObject=null}if(rV){killV(rV);rV.srcObject=null;rV.remove();rV=null}if(scr){_uStop=true;stopScr();_uStop=false}RST={mic:false,cam:false,scr:false};$('va').classList.remove('scr-v');$('scrB').classList.remove('on');var sb=$('sbV');if(sb){killV(sb);sb.srcObject=null;sb.remove()}var b=$('sbF');if(b)b.remove();vcUpd()}
+function onDC(){dbg('DISCONNECT');try{if(DC&&DC.open){DC.send({t:'bye'})}}catch(e){}try{if(CC&&CC.open){CC.close()}}catch(e){}$('stP').className='st off';$('stT').textContent=t('status_off');$('oS').textContent=t('disconnected');stopT();CONNECTED_PEERS={};scrTrack=null;viewScrC();var ds=$('dcS');if(ds)ds.className='dcs off';var aE=$('audR');if(aE){killV(aE);aE.pause();aE.srcObject=null}if(rV){killV(rV);rV.srcObject=null;rV.remove();rV=null}if(scr){_uStop=true;stopScr();_uStop=false}RST={mic:false,cam:false,scr:false};$('va').classList.remove('scr-v');$('scrB').classList.remove('on');var aw=$('aWarn');if(aw)aw.classList.remove('on');var sb=$('sbV');if(sb){killV(sb);sb.srcObject=null;sb.remove()}var b=$('sbF');if(b)b.remove();vcUpd()}
 
 var RST={mic:false,cam:false,scr:false};
 function vcUpd(){
@@ -1172,12 +1205,12 @@ function vcUpd(){
   pillUp();
 }
 function viewScr(){
-  var t=scrTrack;
-  if(!t){var sb=$('sbV');if(sb&&sb.srcObject){var ts=sb.srcObject.getVideoTracks();if(ts.length)t=ts[0]}}
-  if(!t){var r=$('rV');if(r&&r.srcObject){var ts2=r.srcObject.getVideoTracks();if(ts2.length)t=ts2[0]}}
-  if(!t){toast(t('vc_noscr'),'err');return}
+  var trk=scrTrack;
+  if(!trk){var sb=$('sbV');if(sb&&sb.srcObject){var ts=sb.srcObject.getVideoTracks();if(ts.length)trk=ts[0]}}
+  if(!trk){var r=$('rV');if(r&&r.srcObject){var ts2=r.srcObject.getVideoTracks();if(ts2.length)trk=ts2[0]}}
+  if(!trk){toast(t('vc_noscr'),'err');return}
   var v=$('svV');
-  v.srcObject=new MediaStream([t]);
+  v.srcObject=new MediaStream([trk]);
   v.play().catch(function(){});
   $('scrV').classList.add('on');
   if(v.webkitEnterFullscreen){try{v.webkitEnterFullscreen()}catch(e){}}
@@ -1191,7 +1224,7 @@ function pillUp(){var p=$('vSP');if(p){p.classList.toggle('on',!!RST.scr)}}
 function togVC(){var v=$('vc'),on=!v.classList.contains('on');v.classList.toggle('on',on);var b=$('bVC');if(b)b.classList.toggle('on',on);if(on&&chat)togCh(true)}
 
 function toCa(){$('lob').style.display='none';$('ca').classList.add('on')}
-function toLob(){var aE=$('audR');if(aE){aE.pause();aE.srcObject=null}scrTrack=null;viewScrC();$('lob').style.display='flex';$('ca').classList.remove('on');$('wO').style.display='flex';$('ov').classList.remove('on');$('scrB').classList.remove('on');$('codeBadge').classList.remove('on');$('sts').style.display='none';chat=false;$('chP').classList.remove('on');$('bCh').className='b';$('bCh').querySelector('.l').textContent='Chat';mic=false;cam=false;scr=false;$('bM').className='b';$('bM').querySelector('.l').textContent='Micro';$('iM').innerHTML=mOn;$('bC').className='b';$('bC').querySelector('.l').textContent='Camera';$('iC').innerHTML=cOn;$('bS').className='b';$('bS').querySelector('.l').textContent=t('sb_screen');$('pipE').style.display='flex';$('lV').srcObject=null;$('qm').classList.remove('on');$('joinModal').classList.remove('on');$('joinCode').value='';$('wNm').textContent='';$('cbPwd').textContent='';if(camS){camS.getTracks().forEach(function(t){t.stop()});camS=null}if(micS){micS.getTracks().forEach(function(t){t.stop()});micS=null}DC=null;CC=null;REMOTE_NAME='';PEER_ID='';REMOTE_HOST='';RST={mic:false,cam:false,scr:false};try{vcUpd()}catch(e){};if(document.fullscreenElement){try{document.exitFullscreen()}catch(e){}};var f2=$('fsX');if(f2)f2.remove();var qw=$('qrW');if(qw)qw.remove()}
+function toLob(){var aE=$('audR');if(aE){aE.pause();aE.srcObject=null}scrTrack=null;viewScrC();$('lob').style.display='flex';$('ca').classList.remove('on');$('wO').style.display='flex';$('ov').classList.remove('on');$('scrB').classList.remove('on');$('codeBadge').classList.remove('on');$('sts').style.display='none';chat=false;$('chP').classList.remove('on');$('bCh').className='b';$('bCh').querySelector('.l').textContent='Chat';mic=false;cam=false;scr=false;$('bM').className='b';$('bM').querySelector('.l').textContent='Micro';$('iM').innerHTML=mOn;$('bC').className='b';$('bC').querySelector('.l').textContent='Camera';$('iC').innerHTML=cOn;$('bS').className='b';$('bS').querySelector('.l').textContent=t('sb_screen');$('pipE').style.display='flex';$('lV').srcObject=null;$('qm').classList.remove('on');$('joinModal').classList.remove('on');$('joinCode').value='';$('wNm').textContent='';$('cbPwd').textContent='';var aw=$('aWarn');if(aw)aw.classList.remove('on');if(camS){camS.getTracks().forEach(function(t){t.stop()});camS=null}if(micS){micS.getTracks().forEach(function(t){t.stop()});micS=null}DC=null;CC=null;REMOTE_NAME='';PEER_ID='';REMOTE_HOST='';RST={mic:false,cam:false,scr:false};try{vcUpd()}catch(e){};if(document.fullscreenElement){try{document.exitFullscreen()}catch(e){}};var f2=$('fsX');if(f2)f2.remove();var qw=$('qrW');if(qw)qw.remove()}
 
 function startT(){cStart=Date.now();tInt=setInterval(function(){var d=Date.now()-cStart;var h=Math.floor(d/3600000);var m=Math.floor((d%3600000)/60000);var s=Math.floor((d%60000)/1000);var ts=(h>0?h+'h':'')+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');$('oT').textContent=ts;var dt=document.querySelector('.dt');if(dt)dt.textContent=ts},1000)}
 function stopT(){clearInterval(tInt);var dt=document.querySelector('.dt');if(dt)dt.textContent=VER}
@@ -1208,13 +1241,13 @@ function flushQ(){if(!DC||!DC.open||!OUTQ.length)return;var q=OUTQ;OUTQ=[];q.for
 function scheduleQ(){if(outT)return;outT=setTimeout(function(){outT=null;flushQ()},700)}
 (function(){var ci=$('cI');if(ci)ci.addEventListener('input',function(){var c=$('cMs');if(c)c.scrollTop=c.scrollHeight})})();
 function sendM(){
-  var i=$('cI');var t=i.value.trim();
-  if(!t||!t.length)return;
-  if(t.length>500)return;
+  var i=$('cI');var msg=i.value.trim();
+  if(!msg||!msg.length)return;
+  if(msg.length>500)return;
   if(!DC||!DC.open){toast(t('toast_nochan'),'err');return}
   var mid='m'+cryR(6);
-  addM(t,'sent',null,mid);dbg('chat sent');try{console.log('[FU] CHAT SENT',mid)}catch(elog){}
-  sendData({t:'chat',m:t,n:(USER_NAME||'User').substr(0,30),id:mid});
+  addM(msg,'sent',null,mid);dbg('chat sent');try{console.log('[FU] CHAT SENT',mid)}catch(elog){}
+  sendData({t:'chat',m:msg,n:(USER_NAME||'User').substr(0,30),id:mid});
   i.value='';
 }
 function addM(txt,tp,nm,mid){var c=$('cMs');var d=document.createElement('div');d.className='m '+tp;var tm=new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});var pf=(nm&&tp==='recv')?'<strong>'+esc(nm)+':</strong> ':'';var st=(tp==='sent'&&mid)?'<span class="ms" data-mid="'+esc(mid)+'">...</span>':'';d.innerHTML=pf+esc(txt)+'<div class="tm">'+tm+st+'</div>';c.appendChild(d);c.scrollTop=c.scrollHeight}
@@ -1227,7 +1260,7 @@ function togFS(){fsRemote()}
 (function(){var vaEl=$('va');if(vaEl){var fB=document.createElement('button');fB.id='fSF';fB.className='fsf';fB.setAttribute('aria-label','Fullscreen');fB.innerHTML='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>';fB.onclick=fsRemote;vaEl.appendChild(fB)}})();
 var tQ=null;
 function togQ(){var q=$('qm');clearTimeout(tQ);if(q.classList.contains('on')){q.classList.remove('on')}else{q.classList.add('on');tQ=setTimeout(function(){q.classList.remove('on')},5000)}}
-function setQ(q){cQ=q;document.querySelectorAll('.qo').forEach(function(e){e.classList.remove('on')});document.querySelector('[data-q="'+q+'"]').classList.add('on');clearTimeout(tQ);$('qm').classList.remove('on');if(LS&&LS.getVideoTracks().length>0)LS.getVideoTracks()[0].applyConstraints(VQ[q]).catch(function(){});toast(t('toast_quality')+': '+q+'p','ok')}
+function setQ(q){cQ=q;document.querySelectorAll('.qo').forEach(function(e){e.classList.remove('on')});document.querySelector('[data-q="'+q+'"]').classList.add('on');clearTimeout(tQ);$('qm').classList.remove('on');if(LS&&LS.getVideoTracks().length>0)LS.getVideoTracks()[0].applyConstraints(VQ[q]).catch(function(){});if(CC&&CC.peerConnection)boostRate(CC.peerConnection);toast(t('toast_quality')+': '+q+'p','ok')}
 
 function hangUp(){if(CC){CC.close();CC=null}if(P){P.destroy();P=null}if(LS){LS.getTracks().forEach(function(t){t.stop()});LS=null}if(SS){SS.getTracks().forEach(function(t){t.stop()});SS=null}stopT();if(rV){rV.srcObject=null;rV.remove();rV=null}toLob();$('wT').textContent=t('wait_title');$('wS').textContent=t('wait_share');toast(t('toast_hangup'),'ok')}
 
@@ -1238,14 +1271,14 @@ function endCall(){
   toast(t('sb_end2'),'err');
   endArm=setTimeout(function(){endArm=null;var b2=$('bEnd');if(b2)b2.classList.remove('arm')},4000);
 }
-function toast(m,t){var e=$('toast');e.textContent=m;e.className='T '+(t||'')+' on';setTimeout(function(){e.classList.remove('on')},3500)}
+function toast(m,ty){var e=$('toast');e.textContent=m;e.className='T '+(ty||'')+' on';setTimeout(function(){e.classList.remove('on')},3500)}
 function copyCd(){var cd=$('wCd')?$('wCd').textContent:'';if(!cd)cd=$('cbCode')?$('cbCode').textContent:'';if(!cd){toast(t('toast_copy_err'),'err');return}navigator.clipboard.writeText(cd).then(function(){toast(t('toast_copy'),'ok')}).catch(function(){toast(t('toast_copy_err'),'err')})}
 function shareCd(){var cd=$('wCd').textContent;var nm=$('wNm').textContent;if(navigator.share){navigator.share({title:nm,text:'Code: '+cd,url:window.location.href}).catch(function(){})}else{copyCd()}}
 document.addEventListener('click',function(e){if(!e.target.closest('#qm')&&!e.target.closest('#bQ'))$('qm').classList.remove('on')});
 
 var isIO=typeof navigator!=='undefined'&&/iPhone|iPad|iPod/i.test(navigator.userAgent);
 var SCN=!!(typeof navigator!=='undefined'&&navigator.mediaDevices&&navigator.mediaDevices.getDisplayMedia);
-function kickPlay(){try{var aE=$('audR');if(aE){aE.muted=false;aE.volume=1;aE.play().catch(function(){})}}catch(e){}try{var r=$('rV');if(r){r.play().catch(function(){})}}catch(e){}try{var sb=$('sbV');if(sb){sb.play().catch(function(){})}}catch(e){}}
+function kickPlay(){try{var aE=$('audR');if(aE){aE.muted=false;aE.volume=1;aE.play().catch(function(){})}}catch(e){}try{var r=$('rV');if(r){r.play().catch(function(){})}}catch(e){}try{var sb=$('sbV');if(sb){sb.play().catch(function(){})}}catch(e){}try{if(audioCtx&&audioCtx.state==='suspended')audioCtx.resume().catch(function(){})}catch(e){}}
 
 (function(){var pp=$('pip'),lst=0;if(!pp)return;var f=function(e){if(e.preventDefault)e.preventDefault();var n=Date.now();if(n-lst<320){pp.classList.toggle('big');lst=0}else{lst=n}};pp.addEventListener('touchend',f,{passive:false});pp.addEventListener('dblclick',f)})();
 
@@ -1268,7 +1301,7 @@ document.addEventListener('click',kickPlay);
 if(!SCN){var bS=$('bS');if(bS){bS.style.display='none';bS.title=t('tip_screen')+' — indisponible sur ce navigateur (ouvre depuis un PC)'}}
 
 if(window.location.protocol==='file:'||window.location.hostname==='localhost'||window.location.hostname==='127.0.0.1')$('serverHelper').style.display='block';
-var VER='v23';
+var VER='v24';
 var dbgArr=[];var vTaps=0;
 function dbg(m){try{console.log('[FU] '+m)}catch(e){}try{dbgArr.push(new Date().toTimeString().substr(0,8)+' '+m);if(dbgArr.length>9)dbgArr.shift();var d=$('dbg');if(d){d.textContent=dbgArr.join('\n')}}catch(e){}}
 function tapVer(){vTaps++;if(vTaps>=5){vTaps=0;var d=$('dbg');if(d)d.classList.toggle('on')}}
