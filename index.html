@@ -803,7 +803,7 @@ es: {
 //  UTILITAIRES
 // ============================================================
 var lang = 'fr';
-var VER = 'v30';
+var VER = 'v31';
 var $ = function(id) { return document.getElementById(id); };
 var t = function(k) { return TR[lang] && TR[lang][k] ? TR[lang][k] : (TR['fr'][k] || k); };
 
@@ -1625,16 +1625,23 @@ function onR(s) {
     if (sb) { sb.srcObject = null; sb.remove(); }
     var bf = $('sbF');
     if (bf) bf.remove();
-    if (rV && !rV._scrClick) {
+    if (!rV._scrClick) {
       rV._scrClick = true;
-      rV.style.cursor = 'pointer';
-      rV.onclick = function(e) { e.stopPropagation(); viewScr(); };
+      var ov = document.createElement('div');
+      ov.id = 'scrOv';
+      ov.style.cssText = 'position:absolute;inset:0;z-index:20;cursor:pointer';
+      ov.onclick = function(e) { e.stopPropagation(); viewScr(); };
+      $('va').appendChild(ov);
     }
   } else {
     if (sb) { sb.srcObject = null; sb.remove(); }
     var bf = $('sbF');
     if (bf) bf.remove();
-    if (rV && rV._scrClick) { rV._scrClick = false; rV.onclick = null; rV.style.cursor = ''; }
+    if (rV && rV._scrClick) {
+      rV._scrClick = false;
+      var oldOv = $('scrOv');
+      if (oldOv) oldOv.remove();
+    }
   }
   pillUp();
   $('oN').textContent = REMOTE_NAME || USER_NAME || 'User';
@@ -1709,6 +1716,7 @@ function kickPlay() {
 //  PLEIN ÉCRAN - CORRIGÉ
 // ============================================================
 function viewScr() {
+  dbg('viewScr: start');
   var track = scrTrack;
   if (!track) {
     var sb = $('sbV');
@@ -1723,12 +1731,14 @@ function viewScr() {
       if (rs[i].track && rs[i].track.kind === 'video') { track = rs[i].track; break; }
     }
   }
-  if (!track) { toast(t('vc_noscr'), 'err'); return; }
+  if (!track) { dbg('viewScr: NO TRACK'); toast(t('vc_noscr'), 'err'); return; }
+  dbg('viewScr: track found');
   
   var v = $('svV');
   v.srcObject = new MediaStream([track]);
-  v.play().catch(function() {});
+  v.play().catch(function(e) { dbg('viewScr: play err ' + e.message); });
   $('scrV').classList.add('on');
+  dbg('viewScr: SCRV shown');
   
   // Essayer le plein écran
   if (v.webkitEnterFullscreen) {
