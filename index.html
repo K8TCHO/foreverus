@@ -688,6 +688,7 @@ fr: {
   toast_cam_on:'Caméra activée', toast_cam_off:'Caméra coupée', toast_cam_err:'Caméra refusée',
   toast_scr_on:'Écran 1080p60 actif', toast_scr_off:'Écran arrêté', toast_scr_err:'Écran annulé',
   toast_scr_nosupport:'Partage d\'écran non supporté',
+  toast_scr_noaudio:'⚠ Son non capturé. Chrome → coche "Partager le son" dans le sélecteur',
   toast_scr_needhost:'Ouvre via localhost pour le partage d\'écran',
   toast_room_create:'Salle créée', toast_connect:'Connecté !',
   toast_noroom:'Salle introuvable', toast_pwd_err:'Mot de passe incorrect',
@@ -735,6 +736,7 @@ en: {
   toast_cam_on:'Camera enabled', toast_cam_off:'Camera disabled', toast_cam_err:'Camera denied',
   toast_scr_on:'Screen 1080p60 active', toast_scr_off:'Screen stopped', toast_scr_err:'Screen cancelled',
   toast_scr_nosupport:'Screen share not supported',
+  toast_scr_noaudio:'⚠ No audio captured. Chrome → check "Share audio" in picker',
   toast_scr_needhost:'Open via localhost for screen share',
   toast_room_create:'Room created', toast_connect:'Connected !',
   toast_noroom:'Room not found', toast_pwd_err:'Wrong password',
@@ -782,6 +784,7 @@ es: {
   toast_cam_on:'Cámara activada', toast_cam_off:'Cámara desactivada', toast_cam_err:'Cámara denegada',
   toast_scr_on:'Pantalla 1080p60 activa', toast_scr_off:'Pantalla detenida', toast_scr_err:'Pantalla cancelada',
   toast_scr_nosupport:'Compartir pantalla no soportado',
+  toast_scr_noaudio:'⚠ Sin audio. Chrome → marca "Compartir sonido" en el selector',
   toast_scr_needhost:'Abre via localhost para compartir pantalla',
   toast_room_create:'Sala creada', toast_connect:'Conectado !',
   toast_noroom:'Sala no encontrada', toast_pwd_err:'Contraseña incorrecta',
@@ -798,7 +801,7 @@ es: {
 //  UTILITAIRES
 // ============================================================
 var lang = 'fr';
-var VER = 'v26';
+var VER = 'v27';
 var $ = function(id) { return document.getElementById(id); };
 var t = function(k) { return TR[lang] && TR[lang][k] ? TR[lang][k] : (TR['fr'][k] || k); };
 
@@ -918,7 +921,7 @@ var VQ = {
   '360':  { width: { ideal: 640 },  height: { ideal: 360 },  frameRate: { ideal: 24 }, facingMode: 'user' }
 };
 
-var AQ = { echoCancellation: true, noiseSuppression: true, autoGainControl: false };
+var AQ = { echoCancellation: true, noiseSuppression: true, autoGainControl: true };
 
 // ============================================================
 //  ICÔNES SVG
@@ -1002,12 +1005,19 @@ function sendM() {
   var input = $('cI');
   var txt = input.value.trim();
   if (!txt || txt.length > 500) return;
-  if (!DC || !DC.open) { toast(t('toast_nochan'), 'err'); return; }
+  if (!DC || !DC.open) {
+    toast(t('toast_nochan'), 'err');
+    if (!host && P && !P.destroyed) {
+      dbg('sendM: DC pas ouvert, retry...');
+      tryData();
+    }
+    return;
+  }
   var mid = 'm' + cryR(6);
   addM(txt, 'sent', null, mid);
   sendData({ t: 'chat', m: txt, n: (USER_NAME || 'User').substr(0, 30), id: mid });
   input.value = '';
-  console.log('[FU] Chat envoyé:', txt);
+  dbg('chat sent: ' + txt.substr(0, 30));
 }
 
 function addM(txt, type, name, mid) {
@@ -1215,6 +1225,11 @@ async function reqS() {
       }
     };
     toast(t('toast_scr_on'), 'ok');
+    if (SS.getAudioTracks().length === 0) {
+      toast(t('toast_scr_noaudio'), 'err');
+    } else {
+      dbg('scr audio: ' + SS.getAudioTracks().length + ' pistes');
+    }
     sendData({ t: 'scr', on: true });
     sendData({ t: 'st', mic: mic, cam: cam, scr: scr });
     vcUpd();
@@ -1334,10 +1349,15 @@ function doDC(c) {
   DC = c;
   PEER_ID = c.peer;
   lastRx = Date.now();
+  var ds = $('dcS');
+  if (ds) ds.className = 'dcs';
+  dbg('DC created: ' + c.peer);
+  var dcRetryTimer = null;
   c.on('open', function() {
+    if (dcRetryTimer) { clearTimeout(dcRetryTimer); dcRetryTimer = null; }
+    dbg('DC open!');
     c.send({ type: 'auth', token: SECRET });
     flushQ();
-    var ds = $('dcS');
     if (ds) ds.className = 'dcs on';
     $('wO').style.display = 'none';
     $('ov').classList.add('on');
@@ -1406,7 +1426,9 @@ function doDC(c) {
   });
   c.on('close', function() {
     if (DC !== c) return;
+    dbg('DC closed');
     DC = null;
+    if (ds) ds.className = 'dcs off';
     if (!host) {
       var stP = $('stP');
       if (stP) stP.className = 'st w';
@@ -1418,16 +1440,21 @@ function doDC(c) {
       onDC();
     }
   });
-  c.on('error', function(e) { console.error(e); if (e.type === 'peer-unavailable') toast(t('toast_noroom'), 'err'); });
+  c.on('error', function(e) {
+    console.error('[FU] DC error:', e.type || e);
+    dbg('DC err: ' + (e.type || 'unknown'));
+    if (e.type === 'peer-unavailable') toast(t('toast_noroom'), 'err');
+  });
 }
 
 function tryData() {
   if (!P || P.destroyed || host) return;
   if (DC && DC.open) return;
+  dbg('tryData: reconnect...');
   try {
     var c = P.connect(REMOTE_HOST, { reliable: true, serialization: 'json' });
     doDC(c);
-  } catch(e) {}
+  } catch(e) { dbg('tryData err: ' + e.message); }
 }
 
 // ============================================================
@@ -1493,7 +1520,8 @@ function hbLoop() {
 //  MÉDIA / STREAMS - CORRIGÉ (AUDIO + SCREEN SHARE)
 // ============================================================
 function onR(s) {
-  console.log('[FU] Stream reçu:', s.getTracks().length, 'tracks');
+  console.log('[FU] Stream recu:', s.getTracks().length, 'tracks');
+  dbg('onR: ' + s.getTracks().length + ' tracks (' + s.getVideoTracks().length + ' vid, ' + s.getAudioTracks().length + ' aud)');
   $('wO').style.display = 'none';
   $('ov').classList.add('on');
   
@@ -1506,10 +1534,10 @@ function onR(s) {
     });
   } catch(e) {}
   
-  // --- AUDIO --- CORRIGÉ
+  // --- AUDIO --- CORRIGE
   var audTracks = s.getAudioTracks();
   if (audTracks.length > 0) {
-    console.log('[FU] Audio reçu,', audTracks.length, 'pistes');
+    dbg('audio OK: ' + audTracks.length + ' pistes');
     var aE = $('audR');
     if (!aE) {
       aE = document.createElement('audio');
@@ -1533,7 +1561,7 @@ function onR(s) {
       audRetry();
     }
   } else {
-    console.warn('[FU] Pas de piste audio dans le stream');
+    dbg('AUDIO MANQUANT dans stream');
   }
   
   // --- VIDEO ---
