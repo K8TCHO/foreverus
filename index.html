@@ -806,7 +806,7 @@ es: {
 //  UTILITAIRES
 // ============================================================
 var lang = 'fr';
-var VER = 'v35';
+var VER = 'v36';
 var $ = function(id) { return document.getElementById(id); };
 var t = function(k) { return TR[lang] && TR[lang][k] ? TR[lang][k] : (TR['fr'][k] || k); };
 
@@ -895,6 +895,7 @@ var unread = 0;
 var rV = null;
 var scrTrack = null;
 var SCR_REMOTE_ID = '';
+var scrRetryN = 0;
 var lastRx = Date.now();
 var hbOn = false;
 var rcTimer = null;
@@ -1429,7 +1430,7 @@ function doDC(c) {
         dbg('scrTrack id: ' + d.id);
       } else if (d.t === 'scr') {
         RST.scr = !!d.on;
-        if (!d.on) SCR_REMOTE_ID = '';
+        if (!d.on) { SCR_REMOTE_ID = ''; scrRetryN = 0; }
         vcUpd();
         if (!d.on) {
           scrTrack = null;
@@ -1569,7 +1570,8 @@ function onR(s) {
   dbg('onR: ' + s.getTracks().length + ' tracks (' + s.getVideoTracks().length + ' vid, ' + s.getAudioTracks().length + ' aud)');
   $('wO').style.display = 'none';
   $('ov').classList.add('on');
-  
+  var wasScr = RST.scr;
+
   var cams = null, srcs = null;
   try {
     s.getVideoTracks().forEach(function(tr) {
@@ -1580,7 +1582,22 @@ function onR(s) {
       else cams = tr;
     });
   } catch(e) {}
-  
+
+  if (!srcs && wasScr) {
+    var vts = s.getVideoTracks();
+    if (vts.length === 1) { srcs = vts[0]; cams = null; dbg('scr fallback: single track = screen'); }
+    else if (vts.length >= 2) {
+      var b1 = null, b2 = null, a1 = -1, a2 = -1;
+      vts.forEach(function(tr) {
+        var st2 = tr.getSettings ? tr.getSettings() : {};
+        var ar = (st2.width || 0) * (st2.height || 0);
+        if (ar > a1) { a2 = a1; b2 = b1; a1 = ar; b1 = tr; } else if (ar > a2) { a2 = ar; b2 = tr; }
+      });
+      srcs = b1; cams = b2;
+      dbg('scr fallback: biggest track = screen');
+    }
+  }
+
   // --- AUDIO --- CORRIGE
   var audTracks = s.getAudioTracks();
   if (audTracks.length > 0) {
@@ -1637,9 +1654,12 @@ function onR(s) {
     rV = v2;
   }
   
-  $('scrB').classList.toggle('on', !!srcs);
+  $('scrB').classList.toggle('on', !!srcs || wasScr);
   scrTrack = srcs || null;
-  RST.scr = !!srcs;
+  RST.scr = !!srcs || wasScr;
+  if (!srcs && wasScr) {
+    if (scrRetryN < 3) { scrRetryN++; dbg('screen missing, resync #' + scrRetryN); setTimeout(function() { try { if (P && !P.destroyed && RST.scr && !scrTrack) triggerSync(); } catch(e) {} }, 1500); }
+  } else { scrRetryN = 0; }
   
   var sb = $('sbV');
   if (srcs && cams) {
