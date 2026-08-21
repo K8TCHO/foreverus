@@ -806,7 +806,7 @@ es: {
 //  UTILITAIRES
 // ============================================================
 var lang = 'fr';
-var VER = 'v36';
+var VER = 'v37';
 var $ = function(id) { return document.getElementById(id); };
 var t = function(k) { return TR[lang] && TR[lang][k] ? TR[lang][k] : (TR['fr'][k] || k); };
 
@@ -1443,6 +1443,10 @@ function doDC(c) {
           if (bf) bf.remove();
         } else {
           pillUp();
+          if (P && !P.destroyed) {
+            setTimeout(function() { try { if (!P || P.destroyed) return; if (P.disconnected) P.reconnect(); setTimeout(function() { try { if (P && !P.destroyed) triggerSync(); } catch(e) {} }, 600); } catch(e) {} }, 200);
+            setTimeout(function() { try { if (P && !P.destroyed && !scrTrack) triggerSync(); } catch(e) {} }, 3500);
+          }
         }
       }
     } catch(e) { console.error('data', e); }
@@ -1793,7 +1797,12 @@ function viewScr() {
       if (rs[i].track && rs[i].track.kind === 'video') { track = rs[i].track; break; }
     }
   }
-  if (!track) { dbg('viewScr: NO TRACK'); toast(t('vc_noscr'), 'err'); return; }
+  if (!track) {
+    dbg('viewScr: NO TRACK - forcing resync');
+    try { if (P && !P.destroyed) { if (P.disconnected) { P.reconnect(); } setTimeout(function() { try { if (P && !P.destroyed) triggerSync(); } catch(e) {} }, 500); } } catch(e) {}
+    toast(t('vc_noscr'), 'err');
+    return;
+  }
   dbg('viewScr: track found');
   
   var v = $('svV');
