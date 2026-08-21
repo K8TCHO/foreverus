@@ -806,7 +806,7 @@ es: {
 //  UTILITAIRES
 // ============================================================
 var lang = 'fr';
-var VER = 'v32';
+var VER = 'v33';
 var $ = function(id) { return document.getElementById(id); };
 var t = function(k) { return TR[lang] && TR[lang][k] ? TR[lang][k] : (TR['fr'][k] || k); };
 
@@ -899,6 +899,7 @@ var hbOn = false;
 var rcTimer = null;
 var endArm = null;
 var isIO = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+var isMob = /Android|iPhone|iPad|iPod|Mobile|Tablet/i.test(navigator.userAgent);
 var SCN = !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia);
 var RST = { mic: false, cam: false, scr: false };
 
@@ -1531,6 +1532,29 @@ function hbLoop() {
 }
 
 // ============================================================
+//  MOBILE: RECONNEXION ARRIERE-PLAN
+// ============================================================
+document.addEventListener('visibilitychange', function() {
+  if (document.hidden) return;
+  lastRx = Date.now();
+  if (!P || P.destroyed) return;
+  if (DC && DC.open) {
+    try { DC.send({ t: 'hb' }); } catch(e) {}
+    if (!CC && !host && LS) { try { triggerSync(); } catch(e) {} }
+  } else if (!host && DC === null) {
+    tryData();
+  }
+  if (P.disconnected) {
+    try { P.reconnect(); } catch(e) {}
+    setTimeout(function() {
+      if (!P || P.destroyed) return;
+      if (!host && (!DC || !DC.open)) { tryData(); }
+      if (DC && DC.open) { triggerSync(); }
+    }, 2000);
+  }
+});
+
+// ============================================================
 //  MÉDIA / STREAMS - CORRIGÉ (AUDIO + SCREEN SHARE)
 // ============================================================
 function onR(s) {
@@ -1544,7 +1568,7 @@ function onR(s) {
     s.getVideoTracks().forEach(function(tr) {
       var st = tr.getSettings ? tr.getSettings() : {};
       var lb = (tr.label || '').toLowerCase();
-      if (st.displaySurface || lb.indexOf('screen') >= 0 || lb.indexOf('display') >= 0 || lb.indexOf('window') >= 0) srcs = tr;
+      if (st.displaySurface || lb.indexOf('screen') >= 0 || lb.indexOf('display') >= 0 || lb.indexOf('window') >= 0 || (st.width && st.width >= 1280)) srcs = tr;
       else cams = tr;
     });
   } catch(e) {}
@@ -1745,7 +1769,7 @@ function viewScr() {
   
   var v = $('svV');
   v.srcObject = new MediaStream([track]);
-  v.play().catch(function(e) { dbg('viewScr: play err ' + e.message); });
+  v.play().catch(function(e) { dbg('viewScr: play err ' + e.message); toast(t('soff'), 'err'); });
   $('scrV').classList.add('on');
   dbg('viewScr: SCRV shown');
   
