@@ -806,7 +806,7 @@ es: {
 //  UTILITAIRES
 // ============================================================
 var lang = 'fr';
-var VER = 'v33';
+var VER = 'v34';
 var $ = function(id) { return document.getElementById(id); };
 var t = function(k) { return TR[lang] && TR[lang][k] ? TR[lang][k] : (TR['fr'][k] || k); };
 
@@ -1293,7 +1293,7 @@ async function createRoom() {
       c.on('error', function(e) { console.error(e); });
       if (c.peerConnection) { doSt(c.peerConnection); boostRate(c.peerConnection); }
     });
-    P.on('connection', function(c) { if (DC && DC.open) { try { c.on('open', function() { try { c.send({ type: 'full' }); } catch(e) {} setTimeout(function() { try { c.close(); } catch(e) {} }, 100); }); } catch(e) {} dbg('Rejected (room full): ' + c.peer); return; } doDC(c); });
+    P.on('connection', function(c) { var busy = DC && !DC.destroyed && Date.now() - lastRx < 20000; if (busy) { try { c.on('open', function() { try { c.send({ type: 'full' }); } catch(e) {} setTimeout(function() { try { c.close(); } catch(e) {} }, 100); }); } catch(e) {} dbg('Rejected (room full): ' + c.peer); return; } if (DC) { try { DC.close(); } catch(e) {} DC = null; } dbg('Replacing stale DC, accepting ' + c.peer); doDC(c); });
     P.on('disconnected', onSigLost);
     P.on('close', function() { onDC(); });
     P.on('error', function(e) { console.error(e); toast('Erreur: ' + e.type, 'err'); setLd(b, false); });
@@ -1568,7 +1568,7 @@ function onR(s) {
     s.getVideoTracks().forEach(function(tr) {
       var st = tr.getSettings ? tr.getSettings() : {};
       var lb = (tr.label || '').toLowerCase();
-      if (st.displaySurface || lb.indexOf('screen') >= 0 || lb.indexOf('display') >= 0 || lb.indexOf('window') >= 0 || (st.width && st.width >= 1280)) srcs = tr;
+      if (st.displaySurface || lb.indexOf('screen') >= 0 || lb.indexOf('display') >= 0 || lb.indexOf('window') >= 0) srcs = tr;
       else cams = tr;
     });
   } catch(e) {}
