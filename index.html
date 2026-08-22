@@ -806,7 +806,7 @@ es: {
 //  UTILITAIRES
 // ============================================================
 var lang = 'fr';
-var VER = 'v38';
+var VER = 'v39';
 var $ = function(id) { return document.getElementById(id); };
 var t = function(k) { return TR[lang] && TR[lang][k] ? TR[lang][k] : (TR['fr'][k] || k); };
 
@@ -895,6 +895,7 @@ var unread = 0;
 var rV = null;
 var scrTrack = null;
 var lastRx = Date.now();
+var lastTryData = 0;
 var hbOn = false;
 var rcTimer = null;
 var endArm = null;
@@ -911,7 +912,13 @@ var IC = {
     { urls: 'stun:stun1.l.google.com:19302' },
     { urls: 'stun:stun2.l.google.com:19302' },
     {
-      urls: ['turn:openrelay.metered.ca:80', 'turn:openrelay.metered.ca:443', 'turns:openrelay.metered.ca:443'],
+      urls: [
+        'turn:openrelay.metered.ca:80?transport=udp',
+        'turn:openrelay.metered.ca:80?transport=tcp',
+        'turn:openrelay.metered.ca:443?transport=udp',
+        'turn:openrelay.metered.ca:443?transport=tcp',
+        'turns:openrelay.metered.ca:443?transport=tcp'
+      ],
       username: 'openrelayproject',
       credential: 'openrelayproject'
     }
@@ -1464,6 +1471,7 @@ function doDC(c) {
 function tryData() {
   if (!P || P.destroyed || host) return;
   if (DC && DC.open) return;
+  lastTryData = Date.now();
   dbg('tryData: reconnect...');
   try {
     var c = P.connect(REMOTE_HOST, { reliable: true, serialization: 'json' });
@@ -1517,6 +1525,7 @@ function hbLoop() {
   setTimeout(function() {
     if (!P || P.destroyed) { hbOn = false; return; }
     try { if (DC && DC.open) DC.send({ t: 'hb' }); } catch(e) {}
+    if (!host && (!DC || !DC.open) && !P.disconnected && Date.now() - lastTryData > 20000) { tryData(); }
     if (DC && DC.open && Date.now() - lastRx > 900000) {
       try { DC.close(); } catch(e) {}
       DC = null;
