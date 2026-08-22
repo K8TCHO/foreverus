@@ -696,7 +696,7 @@ fr: {
   toast_noroom:'Salle introuvable', toast_pwd_err:'Mot de passe incorrect',
   toast_copy:'Code copié !', toast_copy_err:'Échec copie',
   toast_hangup:'Appel terminé', toast_quality:'Qualité', toast_name_err:'Entrez un nom de salle',
-  toast_full:'Salon complet (2max)',
+  toast_full:'Salon complet (2 max)',
   overlay_waiting:'En attente...', overlay_share:'Partage le code pour te rejoindre',
   connected:'Connecté', disconnected:'Déconnecté',
   msg_title:'Un message pour toi', msg_close:'Fermer',
@@ -806,7 +806,7 @@ es: {
 //  UTILITAIRES
 // ============================================================
 var lang = 'fr';
-var VER = 'v37';
+var VER = 'v38';
 var $ = function(id) { return document.getElementById(id); };
 var t = function(k) { return TR[lang] && TR[lang][k] ? TR[lang][k] : (TR['fr'][k] || k); };
 
@@ -894,14 +894,11 @@ var outTimer = null;
 var unread = 0;
 var rV = null;
 var scrTrack = null;
-var SCR_REMOTE_ID = '';
-var scrRetryN = 0;
 var lastRx = Date.now();
 var hbOn = false;
 var rcTimer = null;
 var endArm = null;
 var isIO = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-var isMob = /Android|iPhone|iPad|iPod|Mobile|Tablet/i.test(navigator.userAgent);
 var SCN = !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia);
 var RST = { mic: false, cam: false, scr: false };
 
@@ -1213,7 +1210,6 @@ async function reqS() {
     SS.getVideoTracks()[0].onended = function() {
       if (scr) {
         scr = false;
-        SCR_REMOTE_ID = '';
         if (SS) { SS.getTracks().forEach(function(t) { if (LS) LS.removeTrack(t); t.stop(); }); SS = null; }
         $('bS').className = 'b';
         $('bS').querySelector('.l').textContent = t('sb_screen');
@@ -1242,7 +1238,6 @@ async function reqS() {
       dbg('scr audio: ' + SS.getAudioTracks().length + ' pistes');
     }
     sendData({ t: 'scr', on: true });
-    try { sendData({ t: 'scrTrack', id: SS.getVideoTracks()[0].id }); } catch(e) {}
     sendData({ t: 'st', mic: mic, cam: cam, scr: scr });
     vcUpd();
   } catch(e) {
@@ -1297,7 +1292,7 @@ async function createRoom() {
       c.on('error', function(e) { console.error(e); });
       if (c.peerConnection) { doSt(c.peerConnection); boostRate(c.peerConnection); }
     });
-    P.on('connection', function(c) { var busy = DC && !DC.destroyed && Date.now() - lastRx < 20000; if (busy) { try { c.on('open', function() { try { c.send({ type: 'full' }); } catch(e) {} setTimeout(function() { try { c.close(); } catch(e) {} }, 100); }); } catch(e) {} dbg('Rejected (room full): ' + c.peer); return; } if (DC) { try { DC.close(); } catch(e) {} DC = null; } dbg('Replacing stale DC, accepting ' + c.peer); doDC(c); });
+    P.on('connection', function(c) { var busy = DC && !DC.destroyed && Date.now() - lastRx < 20000; if (busy) { try { c.on('open', function() { try { c.send({ type: 'full' }); } catch(e) {} setTimeout(function() { try { c.close(); } catch(e) {} }, 100); }); } catch(e) {} dbg('Rejected (room full): ' + c.peer); return; } if (DC) { try { DC.close(); } catch(e) {} DC = null; } doDC(c); });
     P.on('disconnected', onSigLost);
     P.on('close', function() { onDC(); });
     P.on('error', function(e) { console.error(e); toast('Erreur: ' + e.type, 'err'); setLd(b, false); });
@@ -1425,12 +1420,8 @@ function doDC(c) {
         RST.cam = !!d.cam;
         RST.scr = !!d.scr;
         vcUpd();
-      } else if (d.t === 'scrTrack' && typeof d.id === 'string' && d.id.length < 60) {
-        SCR_REMOTE_ID = d.id;
-        dbg('scrTrack id: ' + d.id);
       } else if (d.t === 'scr') {
         RST.scr = !!d.on;
-        if (!d.on) { SCR_REMOTE_ID = ''; scrRetryN = 0; }
         vcUpd();
         if (!d.on) {
           scrTrack = null;
@@ -1443,10 +1434,6 @@ function doDC(c) {
           if (bf) bf.remove();
         } else {
           pillUp();
-          if (P && !P.destroyed) {
-            setTimeout(function() { try { if (!P || P.destroyed) return; if (P.disconnected) P.reconnect(); setTimeout(function() { try { if (P && !P.destroyed) triggerSync(); } catch(e) {} }, 600); } catch(e) {} }, 200);
-            setTimeout(function() { try { if (P && !P.destroyed && !scrTrack) triggerSync(); } catch(e) {} }, 3500);
-          }
         }
       }
     } catch(e) { console.error('data', e); }
@@ -1544,29 +1531,6 @@ function hbLoop() {
 }
 
 // ============================================================
-//  MOBILE: RECONNEXION ARRIERE-PLAN
-// ============================================================
-document.addEventListener('visibilitychange', function() {
-  if (document.hidden) return;
-  lastRx = Date.now();
-  if (!P || P.destroyed) return;
-  if (DC && DC.open) {
-    try { DC.send({ t: 'hb' }); } catch(e) {}
-    if (!CC && !host && LS) { try { triggerSync(); } catch(e) {} }
-  } else if (!host && DC === null) {
-    tryData();
-  }
-  if (P.disconnected) {
-    try { P.reconnect(); } catch(e) {}
-    setTimeout(function() {
-      if (!P || P.destroyed) return;
-      if (!host && (!DC || !DC.open)) { tryData(); }
-      if (DC && DC.open) { triggerSync(); }
-    }, 2000);
-  }
-});
-
-// ============================================================
 //  MÉDIA / STREAMS - CORRIGÉ (AUDIO + SCREEN SHARE)
 // ============================================================
 function onR(s) {
@@ -1574,34 +1538,17 @@ function onR(s) {
   dbg('onR: ' + s.getTracks().length + ' tracks (' + s.getVideoTracks().length + ' vid, ' + s.getAudioTracks().length + ' aud)');
   $('wO').style.display = 'none';
   $('ov').classList.add('on');
-  var wasScr = RST.scr;
-
+  
   var cams = null, srcs = null;
   try {
     s.getVideoTracks().forEach(function(tr) {
       var st = tr.getSettings ? tr.getSettings() : {};
       var lb = (tr.label || '').toLowerCase();
-      var isScr = (SCR_REMOTE_ID && tr.id === SCR_REMOTE_ID) || st.displaySurface || lb.indexOf('screen') >= 0 || lb.indexOf('display') >= 0 || lb.indexOf('window') >= 0;
-      if (isScr) srcs = tr;
+      if (st.displaySurface || lb.indexOf('screen') >= 0 || lb.indexOf('display') >= 0 || lb.indexOf('window') >= 0) srcs = tr;
       else cams = tr;
     });
   } catch(e) {}
-
-  if (!srcs && wasScr) {
-    var vts = s.getVideoTracks();
-    if (vts.length === 1) { srcs = vts[0]; cams = null; dbg('scr fallback: single track = screen'); }
-    else if (vts.length >= 2) {
-      var b1 = null, b2 = null, a1 = -1, a2 = -1;
-      vts.forEach(function(tr) {
-        var st2 = tr.getSettings ? tr.getSettings() : {};
-        var ar = (st2.width || 0) * (st2.height || 0);
-        if (ar > a1) { a2 = a1; b2 = b1; a1 = ar; b1 = tr; } else if (ar > a2) { a2 = ar; b2 = tr; }
-      });
-      srcs = b1; cams = b2;
-      dbg('scr fallback: biggest track = screen');
-    }
-  }
-
+  
   // --- AUDIO --- CORRIGE
   var audTracks = s.getAudioTracks();
   if (audTracks.length > 0) {
@@ -1658,12 +1605,9 @@ function onR(s) {
     rV = v2;
   }
   
-  $('scrB').classList.toggle('on', !!srcs || wasScr);
+  $('scrB').classList.toggle('on', !!srcs);
   scrTrack = srcs || null;
-  RST.scr = !!srcs || wasScr;
-  if (!srcs && wasScr) {
-    if (scrRetryN < 3) { scrRetryN++; dbg('screen missing, resync #' + scrRetryN); setTimeout(function() { try { if (P && !P.destroyed && RST.scr && !scrTrack) triggerSync(); } catch(e) {} }, 1500); }
-  } else { scrRetryN = 0; }
+  RST.scr = !!srcs;
   
   var sb = $('sbV');
   if (srcs && cams) {
@@ -1727,7 +1671,6 @@ function onDC() {
   stopT();
   CONNECTED_PEERS = {};
   scrTrack = null;
-  SCR_REMOTE_ID = '';
   viewScrC();
   var ds = $('dcS');
   if (ds) ds.className = 'dcs off';
@@ -1797,17 +1740,12 @@ function viewScr() {
       if (rs[i].track && rs[i].track.kind === 'video') { track = rs[i].track; break; }
     }
   }
-  if (!track) {
-    dbg('viewScr: NO TRACK - forcing resync');
-    try { if (P && !P.destroyed) { if (P.disconnected) { P.reconnect(); } setTimeout(function() { try { if (P && !P.destroyed) triggerSync(); } catch(e) {} }, 500); } } catch(e) {}
-    toast(t('vc_noscr'), 'err');
-    return;
-  }
+  if (!track) { dbg('viewScr: NO TRACK'); toast(t('vc_noscr'), 'err'); return; }
   dbg('viewScr: track found');
   
   var v = $('svV');
   v.srcObject = new MediaStream([track]);
-  v.play().catch(function(e) { dbg('viewScr: play err ' + e.message); toast(t('soff'), 'err'); });
+  v.play().catch(function(e) { dbg('viewScr: play err ' + e.message); });
   $('scrV').classList.add('on');
   dbg('viewScr: SCRV shown');
   
