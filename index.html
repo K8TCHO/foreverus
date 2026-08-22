@@ -806,9 +806,27 @@ es: {
 //  UTILITAIRES
 // ============================================================
 var lang = 'fr';
-var VER = 'v40';
+var VER = 'v41';
 var $ = function(id) { return document.getElementById(id); };
 var t = function(k) { return TR[lang] && TR[lang][k] ? TR[lang][k] : (TR['fr'][k] || k); };
+
+// FILET DE SÉCURITÉ: aucune erreur JS ne tue la page en silence
+window.addEventListener('error', function(ev) {
+  try {
+    var msg = 'JS ERR: ' + (ev.message || '?') + ' @' + (ev.lineno || '?');
+    console.error('[FU]', msg);
+    var d = document.getElementById('dbg');
+    if (d) {
+      var arr = d.textContent ? d.textContent.split('\n') : [];
+      arr.push(msg);
+      while (arr.length > 9) arr.shift();
+      d.textContent = arr.join('\n');
+      d.classList.add('on');
+    }
+    var tt = document.getElementById('toast');
+    if (tt) { tt.textContent = '⚠ ' + msg; tt.className = 'T err on'; }
+  } catch(e) {}
+});
 
 function setLang(l) {
   lang = l;
@@ -1155,16 +1173,23 @@ function swapSlot(kind, newTrack) {
 }
 
 function initLS() {
-  if (SLOT.audio && SLOT.video) return;
-  if (!LS) LS = new MediaStream();
-  if (!SLOT.audio) {
-    var a = silentTrack();
-    if (!a) { dbg('silent KO, essai micro direct'); }
-    if (a) { LS.addTrack(a); SLOT.audio = a; dbg('slot audio OK'); }
-  }
-  if (!SLOT.video) {
-    var v = blackTrack();
-    if (v) { LS.addTrack(v); SLOT.video = v; dbg('slot video OK'); }
+  try {
+    if (SLOT.audio && SLOT.video) return;
+    if (!LS) LS = new MediaStream();
+    if (!SLOT.audio) {
+      var a = null;
+      try { a = silentTrack(); } catch(ea) { dbg('silentTrack throw: ' + ea.message); }
+      if (a) { try { LS.addTrack(a); SLOT.audio = a; dbg('slot audio OK'); } catch(ea2) { dbg('addTrack audio err: ' + ea2.message); } }
+      else { dbg('slot audio indisponible (sans blocage)'); }
+    }
+    if (!SLOT.video) {
+      var v = null;
+      try { v = blackTrack(); } catch(ev2) { dbg('blackTrack throw: ' + ev2.message); }
+      if (v) { try { LS.addTrack(v); SLOT.video = v; dbg('slot video OK'); } catch(ev3) { dbg('addTrack video err: ' + ev3.message); } }
+      else { dbg('slot video indisponible (sans blocage)'); }
+    }
+  } catch(e) {
+    dbg('initLS erreur non-bloquante: ' + e.message);
   }
 }
 
@@ -2241,6 +2266,21 @@ document.addEventListener('keydown', function(e) {
     else if ($('qm').classList.contains('on')) $('qm').classList.remove('on');
   }
 });
+
+// DEBUG: 3 taps sur le statut (En ligne / Déconnecté) ouvre le panneau
+(function() {
+  var stP = $('stP');
+  if (!stP) return;
+  var nTaps = 0, t0 = 0;
+  stP.style.cursor = 'pointer';
+  stP.addEventListener('click', function() {
+    var n = Date.now();
+    if (n - t0 > 2500) nTaps = 0;
+    t0 = n;
+    nTaps++;
+    if (nTaps >= 3) { nTaps = 0; tapVer(); }
+  });
+})();
 
 document.querySelectorAll('.SB .b, .LB .B, .PM .B, .WT .cb').forEach(function(b) {
   b.addEventListener('mousedown', function(e) {
