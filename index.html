@@ -806,7 +806,7 @@ es: {
 //  UTILITAIRES
 // ============================================================
 var lang = 'fr';
-var VER = 'v42';
+var VER = 'v43';
 var $ = function(id) { return document.getElementById(id); };
 var t = function(k) { return TR[lang] && TR[lang][k] ? TR[lang][k] : (TR['fr'][k] || k); };
 
@@ -1151,25 +1151,43 @@ function senderFor(kind) {
     for (var i = 0; i < ss.length; i++) {
       if (ss[i].track && ss[i].track.kind === kind) return ss[i];
     }
+    var ts = pc.getTransceivers ? pc.getTransceivers() : [];
+    for (var j = 0; j < ts.length; j++) {
+      var tr2 = ts[j];
+      try {
+        if (tr2.sender && tr2.receiver && tr2.receiver.track && tr2.receiver.track.kind === kind) return tr2.sender;
+      } catch(e2) {}
+    }
   } catch(e) {}
   return null;
 }
 
-function swapSlot(kind, newTrack) {
-  if (!LS) LS = new MediaStream();
-  var old = kind === 'video' ? LS.getVideoTracks() : LS.getAudioTracks();
-  old.forEach(function(t) { try { LS.removeTrack(t); } catch(e) {} });
-  if (newTrack) { try { LS.addTrack(newTrack); } catch(e) {} }
-  SLOT[kind] = newTrack || null;
-  var sd = senderFor(kind);
-  if (sd && newTrack) {
-    try {
-      sd.replaceTrack(newTrack);
-      dbg('swap' + kind.charAt(0).toUpperCase() + kind.slice(1) + ' OK');
-      return true;
-    } catch(e) { dbg('swap' + kind + ' err: ' + e.message); }
+function swapSlot(kind, newTrack, attempt) {
+  attempt = attempt || 0;
+  var live = !!(CC && CC.peerConnection);
+  if (!live) {
+    if (!LS) LS = new MediaStream();
+    var old = kind === 'video' ? LS.getVideoTracks() : LS.getAudioTracks();
+    old.forEach(function(t) { try { LS.removeTrack(t); } catch(e) {} });
+    if (newTrack) { try { LS.addTrack(newTrack); } catch(e) {} }
   }
-  return false;
+  SLOT[kind] = newTrack || null;
+  if (!live || !newTrack) return false;
+  var sd = senderFor(kind);
+  if (!sd) {
+    if (attempt < 16) {
+      dbg('swap' + kind + ': sender absent, retry ' + attempt);
+      setTimeout(function() { swapSlot(kind, newTrack, attempt + 1); }, 300);
+      return false;
+    }
+    dbg('swap' + kind + ': ABANDON (sender jamais apparu)');
+    return false;
+  }
+  try {
+    sd.replaceTrack(newTrack);
+    dbg('swap' + kind.charAt(0).toUpperCase() + kind.slice(1) + ' OK');
+    return true;
+  } catch(e) { dbg('swap' + kind + ' err: ' + e.message); return false; }
 }
 
 function initLS() {
@@ -1213,6 +1231,13 @@ function wireCall(c) {
   var old = CC;
   CC = c;
   c.on('stream', onR);
+  setTimeout(function() {
+    try {
+      var pc = c.peerConnection;
+      if (pc) dbg('PC: ' + pc.connectionState + ' | senders:' + pc.getSenders().length);
+      else dbg('PC absent apres wire');
+    } catch(e) { dbg('PC diag err: ' + e.message); }
+  }, 2000);
   c.on('close', function() {
     if (CC !== c) return;
     dbg('CALL closed');
