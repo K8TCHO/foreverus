@@ -806,7 +806,7 @@ es: {
 //  UTILITAIRES
 // ============================================================
 var lang = 'fr';
-var VER = 'v41';
+var VER = 'v42';
 var $ = function(id) { return document.getElementById(id); };
 var t = function(k) { return TR[lang] && TR[lang][k] ? TR[lang][k] : (TR['fr'][k] || k); };
 
@@ -1451,7 +1451,7 @@ async function createRoom() {
       dbg('CALL IN ok');
       wireCall(c);
     });
-    P.on('connection', function(c) { var busy = DC && !DC.destroyed && Date.now() - lastRx < 20000; if (busy) { try { c.on('open', function() { try { c.send({ type: 'full' }); } catch(e) {} setTimeout(function() { try { c.close(); } catch(e) {} }, 100); }); } catch(e) {} dbg('Rejected (room full): ' + c.peer); return; } if (DC) { try { DC.close(); } catch(e) {} DC = null; } doDC(c); });
+    P.on('connection', function(c) { var sameGuest = !!(PEER_ID && c.peer === PEER_ID); var busy = !sameGuest && DC && !DC.destroyed && Date.now() - lastRx < 20000; if (busy) { try { c.on('open', function() { try { c.send({ type: 'full' }); } catch(e) {} setTimeout(function() { try { c.close(); } catch(e) {} }, 100); }); } catch(e) {} dbg('Rejected (room full): ' + c.peer); return; } if (sameGuest) dbg('Reconnexion du meme invite: acceptee'); if (DC) { try { DC.close(); } catch(e) {} DC = null; } doDC(c); });
     P.on('disconnected', onSigLost);
     P.on('close', function() { onDC(); });
     P.on('error', function(e) { console.error(e); toast('Erreur: ' + e.type, 'err'); setLd(b, false); });
