@@ -158,8 +158,6 @@ MN{flex:1;display:flex;overflow:hidden;position:relative}
 
 .SCR-B{position:absolute;top:14px;left:50%;transform:translateX(-50%);background:rgba(123,108,246,.9);backdrop-filter:blur(10px);padding:6px 16px;border-radius:99px;font-size:10px;font-weight:700;color:#fff;display:none;align-items:center;gap:6px;z-index:15}
 .SCR-B.on{display:flex}
-.SCR-B.noaud{background:rgba(220,50,50,.95)!important;animation:audPulse 2s infinite}
-@keyframes audPulse{0%,100%{opacity:1}50%{opacity:.5}}
 
 .CODE-BADGE{position:absolute;top:14px;left:14px;background:rgba(10,10,20,.85);backdrop-filter:blur(16px);border:1px solid var(--bd2);border-radius:10px;padding:8px 14px;display:none;align-items:center;gap:8px;z-index:15;cursor:pointer;transition:all .2s}
 .CODE-BADGE:hover{border-color:var(--ac);background:rgba(123,108,246,.1)}
@@ -674,7 +672,7 @@ fr: {
   chat_title:'Chat privé', chat_placeholder:'Écrire...',
   sb_mic:'Micro', sb_mic_on:'Micro ON', sb_mic_off:'Micro OFF',
   sb_cam:'Caméra', sb_cam_on:'Caméra ON', sb_cam_off:'Caméra OFF',
-  sb_screen:'Écran', sb_screen_on:'Écran ON', sb_screen_noaudio:'ECRAN SANS SON ⚠',
+  sb_screen:'Écran', sb_screen_on:'Écran ON',
   vc_channel:'Salon vocal', vc_me:'Moi', vc_guest:'Invité', vc_noscr:'Pas de partage',
   vc_view_scr:'Voir son écran (plein écran)',
   sb_chat:'Chat', sb_chat_on:'Chat ON',
@@ -696,7 +694,6 @@ fr: {
   toast_noroom:'Salle introuvable', toast_pwd_err:'Mot de passe incorrect',
   toast_copy:'Code copié !', toast_copy_err:'Échec copie',
   toast_hangup:'Appel terminé', toast_quality:'Qualité', toast_name_err:'Entrez un nom de salle',
-  toast_full:'Salon complet (2 max)',
   overlay_waiting:'En attente...', overlay_share:'Partage le code pour te rejoindre',
   connected:'Connecté', disconnected:'Déconnecté',
   msg_title:'Un message pour toi', msg_close:'Fermer',
@@ -723,7 +720,7 @@ en: {
   chat_title:'Private chat', chat_placeholder:'Type...',
   sb_mic:'Mic', sb_mic_on:'Mic ON', sb_mic_off:'Mic OFF',
   sb_cam:'Camera', sb_cam_on:'Cam ON', sb_cam_off:'Cam OFF',
-  sb_screen:'Screen', sb_screen_on:'Screen ON', sb_screen_noaudio:'NO AUDIO ⚠',
+  sb_screen:'Screen', sb_screen_on:'Screen ON',
   vc_channel:'Voice channel', vc_me:'You', vc_guest:'Guest', vc_noscr:'Not sharing',
   vc_view_scr:'View their screen (fullscreen)',
   sb_chat:'Chat', sb_chat_on:'Chat ON',
@@ -745,7 +742,6 @@ en: {
   toast_noroom:'Room not found', toast_pwd_err:'Wrong password',
   toast_copy:'Code copied !', toast_copy_err:'Copy failed',
   toast_hangup:'Call ended', toast_quality:'Quality', toast_name_err:'Enter a room name',
-  toast_full:'Room full (2 max)',
   overlay_waiting:'Waiting...', overlay_share:'Share the code to join',
   connected:'Connected', disconnected:'Disconnected',
   msg_title:'A message for you', msg_close:'Close',
@@ -772,7 +768,7 @@ es: {
   chat_title:'Chat privado', chat_placeholder:'Escribir...',
   sb_mic:'Micro', sb_mic_on:'Micro ON', sb_mic_off:'Micro OFF',
   sb_cam:'Cámara', sb_cam_on:'Cámara ON', sb_cam_off:'Cámara OFF',
-  sb_screen:'Pantalla', sb_screen_on:'Pantalla ON', sb_screen_noaudio:'SIN SONIDO ⚠',
+  sb_screen:'Pantalla', sb_screen_on:'Pantalla ON',
   vc_channel:'Canal de voz', vc_me:'Yo', vc_guest:'Invitado', vc_noscr:'No comparte',
   vc_view_scr:'Ver su pantalla (pantalla completa)',
   sb_chat:'Chat', sb_chat_on:'Chat ON',
@@ -794,7 +790,6 @@ es: {
   toast_noroom:'Sala no encontrada', toast_pwd_err:'Contraseña incorrecta',
   toast_copy:'Código copiado !', toast_copy_err:'Error al copiar',
   toast_hangup:'Llamada terminada', toast_quality:'Calidad', toast_name_err:'Ingresa un nombre de sala',
-  toast_full:'Sala llena (máx 2)',
   overlay_waiting:'Esperando...', overlay_share:'Comparte el código para unirte',
   connected:'Conectado', disconnected:'Desconectado',
   msg_title:'Un mensaje para ti', msg_close:'Cerrar',
@@ -806,7 +801,7 @@ es: {
 //  UTILITAIRES
 // ============================================================
 var lang = 'fr';
-var VER = 'v39';
+var VER = 'v27';
 var $ = function(id) { return document.getElementById(id); };
 var t = function(k) { return TR[lang] && TR[lang][k] ? TR[lang][k] : (TR['fr'][k] || k); };
 
@@ -895,7 +890,6 @@ var unread = 0;
 var rV = null;
 var scrTrack = null;
 var lastRx = Date.now();
-var lastTryData = 0;
 var hbOn = false;
 var rcTimer = null;
 var endArm = null;
@@ -912,13 +906,7 @@ var IC = {
     { urls: 'stun:stun1.l.google.com:19302' },
     { urls: 'stun:stun2.l.google.com:19302' },
     {
-      urls: [
-        'turn:openrelay.metered.ca:80?transport=udp',
-        'turn:openrelay.metered.ca:80?transport=tcp',
-        'turn:openrelay.metered.ca:443?transport=udp',
-        'turn:openrelay.metered.ca:443?transport=tcp',
-        'turns:openrelay.metered.ca:443?transport=tcp'
-      ],
+      urls: ['turn:openrelay.metered.ca:80', 'turn:openrelay.metered.ca:443', 'turns:openrelay.metered.ca:443'],
       username: 'openrelayproject',
       credential: 'openrelayproject'
     }
@@ -1019,7 +1007,10 @@ function sendM() {
   if (!txt || txt.length > 500) return;
   if (!DC || !DC.open) {
     toast(t('toast_nochan'), 'err');
-    if (!host && P && !P.destroyed) tryData();
+    if (!host && P && !P.destroyed) {
+      dbg('sendM: DC pas ouvert, retry...');
+      tryData();
+    }
     return;
   }
   var mid = 'm' + cryR(6);
@@ -1178,7 +1169,6 @@ async function reqS() {
     $('bS').className = 'b';
     $('bS').querySelector('.l').textContent = t('sb_screen');
     $('scrB').classList.remove('on');
-    $('scrB').classList.remove('noaud');
     $('pip').classList.remove('scr');
     if (LS && LS.getVideoTracks().length) {
       $('lV').srcObject = LS;
@@ -1221,7 +1211,6 @@ async function reqS() {
         $('bS').className = 'b';
         $('bS').querySelector('.l').textContent = t('sb_screen');
         $('scrB').classList.remove('on');
-        $('scrB').classList.remove('noaud');
         $('pip').classList.remove('scr');
         if (LS && LS.getVideoTracks().length) {
           $('lV').srcObject = LS;
@@ -1237,11 +1226,8 @@ async function reqS() {
     };
     toast(t('toast_scr_on'), 'ok');
     if (SS.getAudioTracks().length === 0) {
-      $('scrB').classList.add('noaud');
-      $('scrB').innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/></svg> ' + t('sb_screen_noaudio');
       toast(t('toast_scr_noaudio'), 'err');
     } else {
-      $('scrB').classList.remove('noaud');
       dbg('scr audio: ' + SS.getAudioTracks().length + ' pistes');
     }
     sendData({ t: 'scr', on: true });
@@ -1299,7 +1285,7 @@ async function createRoom() {
       c.on('error', function(e) { console.error(e); });
       if (c.peerConnection) { doSt(c.peerConnection); boostRate(c.peerConnection); }
     });
-    P.on('connection', function(c) { var busy = DC && !DC.destroyed && Date.now() - lastRx < 20000; if (busy) { try { c.on('open', function() { try { c.send({ type: 'full' }); } catch(e) {} setTimeout(function() { try { c.close(); } catch(e) {} }, 100); }); } catch(e) {} dbg('Rejected (room full): ' + c.peer); return; } if (DC) { try { DC.close(); } catch(e) {} DC = null; } doDC(c); });
+    P.on('connection', function(c) { doDC(c); });
     P.on('disconnected', onSigLost);
     P.on('close', function() { onDC(); });
     P.on('error', function(e) { console.error(e); toast('Erreur: ' + e.type, 'err'); setLd(b, false); });
@@ -1401,12 +1387,6 @@ function doDC(c) {
         }
         return;
       }
-      if (d.type === 'full') {
-        toast(t('toast_full'), 'err');
-        try { DC.close(); } catch(e) {}
-        DC = null;
-        return;
-      }
       if (d.t === 'chat' && typeof d.m === 'string' && d.m.length <= 500 && typeof d.n === 'string' && d.n.length < 30) {
         console.log('[FU] Chat reçu:', d.m);
         addM(d.m, 'recv', d.n);
@@ -1434,7 +1414,6 @@ function doDC(c) {
           scrTrack = null;
           viewScrC();
           $('scrB').classList.remove('on');
-          $('scrB').classList.remove('noaud');
           var sb = $('sbV');
           if (sb) sb.remove();
           var bf = $('sbF');
@@ -1471,7 +1450,6 @@ function doDC(c) {
 function tryData() {
   if (!P || P.destroyed || host) return;
   if (DC && DC.open) return;
-  lastTryData = Date.now();
   dbg('tryData: reconnect...');
   try {
     var c = P.connect(REMOTE_HOST, { reliable: true, serialization: 'json' });
@@ -1525,8 +1503,7 @@ function hbLoop() {
   setTimeout(function() {
     if (!P || P.destroyed) { hbOn = false; return; }
     try { if (DC && DC.open) DC.send({ t: 'hb' }); } catch(e) {}
-    if (!host && (!DC || !DC.open) && !P.disconnected && Date.now() - lastTryData > 20000) { tryData(); }
-    if (DC && DC.open && Date.now() - lastRx > 900000) {
+    if (DC && DC.open && Date.now() - lastRx > 20000) {
       try { DC.close(); } catch(e) {}
       DC = null;
       var stP = $('stP');
@@ -1552,8 +1529,7 @@ function onR(s) {
   try {
     s.getVideoTracks().forEach(function(tr) {
       var st = tr.getSettings ? tr.getSettings() : {};
-      var lb = (tr.label || '').toLowerCase();
-      if (st.displaySurface || lb.indexOf('screen') >= 0 || lb.indexOf('display') >= 0 || lb.indexOf('window') >= 0) srcs = tr;
+      if (st.displaySurface) srcs = tr;
       else cams = tr;
     });
   } catch(e) {}
@@ -1639,27 +1615,10 @@ function onR(s) {
     } else {
       sb.srcObject = new MediaStream([srcs]);
     }
-  } else if (srcs && !cams) {
-    if (sb) { sb.srcObject = null; sb.remove(); }
-    var bf = $('sbF');
-    if (bf) bf.remove();
-    if (!rV._scrClick) {
-      rV._scrClick = true;
-      var ov = document.createElement('div');
-      ov.id = 'scrOv';
-      ov.style.cssText = 'position:absolute;inset:0;z-index:20;cursor:pointer';
-      ov.onclick = function(e) { e.stopPropagation(); viewScr(); };
-      $('va').appendChild(ov);
-    }
   } else {
     if (sb) { sb.srcObject = null; sb.remove(); }
     var bf = $('sbF');
     if (bf) bf.remove();
-    if (rV && rV._scrClick) {
-      rV._scrClick = false;
-      var oldOv = $('scrOv');
-      if (oldOv) oldOv.remove();
-    }
   }
   pillUp();
   $('oN').textContent = REMOTE_NAME || USER_NAME || 'User';
@@ -1690,7 +1649,6 @@ function onDC() {
   RST = { mic: false, cam: false, scr: false };
   $('va').classList.remove('scr-v');
   $('scrB').classList.remove('on');
-  $('scrB').classList.remove('noaud');
   var sb = $('sbV');
   if (sb) { sb.srcObject = null; sb.remove(); }
   var bf = $('sbF');
@@ -1734,7 +1692,6 @@ function kickPlay() {
 //  PLEIN ÉCRAN - CORRIGÉ
 // ============================================================
 function viewScr() {
-  dbg('viewScr: start');
   var track = scrTrack;
   if (!track) {
     var sb = $('sbV');
@@ -1743,20 +1700,12 @@ function viewScr() {
   if (!track) {
     if (rV && rV.srcObject) { var ts2 = rV.srcObject.getVideoTracks(); if (ts2.length) track = ts2[0]; }
   }
-  if (!track && CC && CC.peerConnection) {
-    var rs = CC.peerConnection.getReceivers ? CC.peerConnection.getReceivers() : [];
-    for (var i = 0; i < rs.length; i++) {
-      if (rs[i].track && rs[i].track.kind === 'video') { track = rs[i].track; break; }
-    }
-  }
-  if (!track) { dbg('viewScr: NO TRACK'); toast(t('vc_noscr'), 'err'); return; }
-  dbg('viewScr: track found');
+  if (!track) { toast(t('vc_noscr'), 'err'); return; }
   
   var v = $('svV');
   v.srcObject = new MediaStream([track]);
-  v.play().catch(function(e) { dbg('viewScr: play err ' + e.message); });
+  v.play().catch(function() {});
   $('scrV').classList.add('on');
-  dbg('viewScr: SCRV shown');
   
   // Essayer le plein écran
   if (v.webkitEnterFullscreen) {
@@ -1825,7 +1774,6 @@ function toLob() {
   $('wO').style.display = 'flex';
   $('ov').classList.remove('on');
   $('scrB').classList.remove('on');
-  $('scrB').classList.remove('noaud');
   $('codeBadge').classList.remove('on');
   $('sts').style.display = 'none';
   chat = false;
