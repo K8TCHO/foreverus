@@ -413,7 +413,7 @@ MN{flex:1;display:flex;overflow:hidden;position:relative}
   <div class="box">
     <div class="lg-av"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
     <h2>ForeverUs</h2>
-    <div class="lg-sub">Choisissez votre langue</div>
+    <div class="lg-sub" data-i18n="lang_pick">Choisissez votre langue</div>
     <div class="opts">
       <button onclick="setLang('fr')"><div class="flag">🇫🇷</div><div class="lname">Francais</div><div class="lcode">FR</div></button>
       <button onclick="setLang('en')"><div class="flag">🇬🇧</div><div class="lname">English</div><div class="lcode">EN</div></button>
@@ -541,7 +541,7 @@ MN{flex:1;display:flex;overflow:hidden;position:relative}
         <span class="cb-txt" id="cbPwd" style="font-size:10px;color:var(--t2);margin-left:4px"></span>
         <button class="cb-cp" onclick="event.stopPropagation();copyCd()" data-i18n="btn_copy">Copier</button>
       </div>
-      <div class="SCR-B" id="scrB"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/></svg> ECRAN 1080p60</div>
+      <div class="SCR-B" id="scrB"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/></svg> <span data-i18n="screen_badge">ECRAN 1080p60</span></div>
       <div class="OV" id="ov"><div class="n" id="oN">-</div><div class="s" id="oS">En attente</div><div class="t" id="oT"></div></div>
       <div class="WT" id="wO">
         <div class="sp"></div>
@@ -563,7 +563,7 @@ MN{flex:1;display:flex;overflow:hidden;position:relative}
             </button>
           </div>
           <div class="room-name-wrap">
-            <div class="code-lbl">SALLE</div>
+            <div class="code-lbl" data-i18n="room_label">SALLE</div>
             <div class="code" id="wNm" style="font-size:14px;cursor:default;letter-spacing:0"></div>
           </div>
           <div class="code-h" data-i18n="code_hint">Clique le code pour copier</div>
@@ -577,7 +577,7 @@ MN{flex:1;display:flex;overflow:hidden;position:relative}
         </div>
       </div>
       <div class="STS" id="sts" style="display:none"><div class="s" id="sR">-</div><div class="s" id="sF">-</div><div class="s" id="sK">-</div></div>
-      <div class="PILL" id="vSP" onclick="viewScr()"><span class="pd"></span><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/></svg>ECRAN DIRECT</div>
+      <div class="PILL" id="vSP" onclick="viewScr()"><span class="pd"></span><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/></svg><span data-i18n="pill_live">ECRAN DIRECT</span></div>
     <div id="dbg"></div>
     </div>
 
@@ -637,7 +637,7 @@ MN{flex:1;display:flex;overflow:hidden;position:relative}
     </div>
 
     <div class="QM" id="qm">
-      <div class="qt">Qualite</div>
+      <div class="qt" data-i18n="sb_quality">Qualite</div>
       <div class="qo on" data-q="1080" onclick="setQ('1080')"><span>1080p 60fps</span><span class="ck">&#10003;</span></div>
       <div class="qo" data-q="720" onclick="setQ('720')"><span>720p 60fps</span><span class="ck">&#10003;</span></div>
       <div class="qo" data-q="480" onclick="setQ('480')"><span>480p 30fps</span><span class="ck">&#10003;</span></div>
@@ -668,6 +668,7 @@ fr: {
   perm_title:'Autorisation', btn_cancel:'Annuler', btn_allow:'Autoriser',
   badge_room:'Salle', badge_pwd:'Mdp', btn_copy:'Copier',
   screen_badge:'ÉCRAN 1080p60',
+  room_label:'SALLE', pill_live:'ECRAN DIRECT', lang_pick:'Choisissez votre langue',
   wait_title:'En attente...', wait_share:'Partage ce code :',
   hint_txt:'Active caméra + micro avec les boutons | Raccourcis: M V S C F',
   code_label:'CODE DE SALLE', code_hint:'Clique le code pour copier',
@@ -717,6 +718,7 @@ en: {
   perm_title:'Permission', btn_cancel:'Cancel', btn_allow:'Allow',
   badge_room:'Room', badge_pwd:'Pwd', btn_copy:'Copy',
   screen_badge:'SCREEN 1080p60',
+  room_label:'ROOM', pill_live:'LIVE SCREEN', lang_pick:'Choose your language',
   wait_title:'Waiting...', wait_share:'Share the code with others :',
   hint_txt:'Enable camera + mic with buttons | Shortcuts: M V S C F',
   code_label:'ROOM CODE', code_hint:'Click code to copy',
@@ -766,6 +768,7 @@ es: {
   perm_title:'Permiso', btn_cancel:'Cancelar', btn_allow:'Permitir',
   badge_room:'Sala', badge_pwd:'Clave', btn_copy:'Copiar',
   screen_badge:'PANTALLA 1080p60',
+  room_label:'SALA', pill_live:'PANTALLA EN VIVO', lang_pick:'Elige tu idioma',
   wait_title:'Esperando...', wait_share:'Comparte el código con otros :',
   hint_txt:'Activa cámara + micro con los botones | Atajos: M V S C F',
   code_label:'CÓDIGO DE SALA', code_hint:'Clic para copiar',
@@ -806,7 +809,7 @@ es: {
 //  UTILITAIRES
 // ============================================================
 var lang = 'fr';
-var VER = 'v44';
+var VER = 'v45';
 var $ = function(id) { return document.getElementById(id); };
 var t = function(k) { return TR[lang] && TR[lang][k] ? TR[lang][k] : (TR['fr'][k] || k); };
 
@@ -1721,7 +1724,11 @@ function hbLoop() {
   setTimeout(function() {
     if (!P || P.destroyed) { hbOn = false; return; }
     try { if (DC && DC.open) DC.send({ t: 'hb' }); } catch(e) {}
-    if (!host && (!DC || !DC.open) && !P.disconnected && Date.now() - lastTryData > 20000) { tryData(); }
+    if (!host && (!DC || !DC.open) && Date.now() - lastTryData > 20000) { tryData(); }
+    if (P.disconnected && !P.destroyed && Date.now() - lastRx < 900000) {
+      dbg('signaling perdu -> reconnexion auto');
+      try { P.reconnect(); } catch(e) {}
+    }
     if (DC && DC.open && !CC && Date.now() - lastRx < 30000 && Math.random() < 0.3) {
       dbg('watchdog: media absent, relance call');
       startCall();
