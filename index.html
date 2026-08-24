@@ -859,7 +859,7 @@ es: {
 //  UTILITAIRES
 // ============================================================
 var lang = 'fr';
-var VER = 'v60';
+var VER = 'v61';
 var $ = function(id) { return document.getElementById(id); };
 var t = function(k) { return TR[lang] && TR[lang][k] ? TR[lang][k] : (TR['fr'][k] || k); };
 
@@ -1193,10 +1193,19 @@ function sigMakeCC(pc) {
 }
 
 function sigAcceptOffer(p) {
+  var nowT = Date.now();
+  if (SIG.lastOfferFrom === p.from && SIG.lastOfferAt && nowT - SIG.lastOfferAt < 5000 && SIG.pc && !SIG.acceptingNew) {
+    dbg('offre dupliquee de ' + p.from + ': ignoree');
+    return;
+  }
+  SIG.lastOfferFrom = p.from;
+  SIG.lastOfferAt = nowT;
   dbg('SIG: offre recue de ' + p.from);
   sigResetMedia();
   var pc = sigMakePC();
   if (!pc) return;
+  SIG.acceptingNew = true;
+  setTimeout(function() { SIG.acceptingNew = false; }, 1200);
   SIG.pc = pc;
   SIG.role = 'host';
   SIG.target = p.from;
@@ -1257,6 +1266,7 @@ function sigOnSignal(p) {
 function sigEnsureConnected() {
   if (host || !SIG.joined) return;
   if (SIG.pc && SIG.pc.connectionState !== 'failed' && SIG.pc.connectionState !== 'closed') return;
+  if (SIG.offerSentAt && Date.now() - SIG.offerSentAt < 8000) { dbg('offre deja en vol, patiente'); return; }
   if (SIG.attempts >= 6) { dbg('SIG: abandon apres 6 essais'); return; }
   SIG.attempts++;
   dbg('SIG: tentative connexion media #' + SIG.attempts);
@@ -1274,6 +1284,7 @@ function sigEnsureConnected() {
   pc.createOffer().then(function(off) {
     return pc.setLocalDescription(off);
   }).then(function() {
+    SIG.offerSentAt = Date.now();
     sigToPeer({ k: 'offer', sdp: pc.localDescription.sdp, nm: (USER_NAME || 'User').substr(0, 30) });
   }).catch(function(e) {
     dbg('SIG offer err: ' + e.message);
