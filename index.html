@@ -859,7 +859,7 @@ es: {
 //  UTILITAIRES
 // ============================================================
 var lang = 'fr';
-var VER = 'v62';
+var VER = 'v63';
 var $ = function(id) { return document.getElementById(id); };
 var t = function(k) { return TR[lang] && TR[lang][k] ? TR[lang][k] : (TR['fr'][k] || k); };
 
@@ -1122,9 +1122,21 @@ function sigMakePC() {
 function sigAddLocalTracks(pc) {
   try { if (LS && LS.getTracks().length) LS.getTracks().forEach(function(t) { try { pc.addTrack(t, LS); } catch(e) {} }); } catch(e) {}
 }
-function sigWirePC(pc, fromId) {
+function sigWirePC(pc, fromId, ch) {
+  pc._ch = ch || 'dc';
   pc.onicecandidate = function(ev) {
-    if (ev.candidate && fromId) sigToPeer({ k: 'ice', to: fromId, cand: ev.candidate.toJSON ? ev.candidate.toJSON() : ev.candidate });
+    if (ev.candidate) {
+      pc._sent = (pc._sent || 0) + 1;
+      if (fromId) sigToPeer({ k: 'ice', ch: pc._ch, to: fromId, cand: ev.candidate.toJSON ? ev.candidate.toJSON() : ev.candidate });
+    } else {
+      if (!pc._gatherDone) { pc._gatherDone = true; dbg('ICE[' + pc._ch + '] locaux envoys: ' + (pc._sent || 0) + ((pc._sent || 0) ? '' : ' \u26a0 AUCUN (VPN/proxy bloque?)')); }
+    }
+  };
+  pc.onicegatheringstatechange = function() {
+    if (pc.iceGatheringState === 'complete' && !pc._gatherDone) {
+      pc._gatherDone = true;
+      dbg('ICE[' + pc._ch + '] gathering fini, envoys: ' + (pc._sent || 0) + ((pc._sent || 0) ? '' : ' \u26a0 AUCUN (VPN/proxy bloque?)'));
+    }
   };
   pc.ontrack = function(ev) {
     var stream = (ev.streams && ev.streams[0]) || null;
@@ -1276,6 +1288,10 @@ function sigAcceptOffer(p) {
 
 function sigOnSignal(p) {
   if (!p || !p.k) return;
+  if (p.k === 'ice' && p.cand) {
+    var tpIce = (p.ch === 'av') ? SIG.avPc : SIG.dcPc;
+    if (tpIce) { tpIce._got = (tpIce._got || 0) + 1; if (tpIce._got === 1) dbg('ICE[' + p.ch + '] 1er candidat recu'); }
+  }
   if (p.k === 'offer') {
     if (p.from === SIG.myId) return;
     if (p.ch === 'av') { sigAcceptAVOffer(p); return; }
