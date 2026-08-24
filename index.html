@@ -406,6 +406,14 @@ MN{flex:1;display:flex;overflow:hidden;position:relative}
 .m .ms{font-size:9px;margin-left:5px;opacity:.7;color:#8affb0;font-weight:700}
 .unlSnd{position:absolute;bottom:70px;left:50%;transform:translateX(-50%);z-index:17;padding:10px 16px;border:none;border-radius:999px;background:linear-gradient(135deg,#ff6eb4,#a84dff);color:#fff;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.4);animation:unlP 1.2s infinite}
 @keyframes unlP{0%,100%{box-shadow:0 4px 18px rgba(0,0,0,.4)}50%{box-shadow:0 4px 26px rgba(255,110,180,.55)}}
+.chk{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--t2);font-weight:700;cursor:pointer;margin-top:-2px;user-select:none}
+.chk input{accent-color:#ff5c8a;width:15px;height:15px;cursor:pointer}
+.pub-row{display:flex;align-items:center;gap:10px;padding:11px 13px;background:rgba(255,255,255,.04);border:1px solid var(--bd);border-radius:10px;margin-bottom:8px;text-align:left}
+.pub-row .pn{flex:1;min-width:0;text-align:left;font-size:12px;font-weight:800;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pub-row .pc{font-size:10px;color:var(--ac2);font-weight:800;letter-spacing:.5px;flex-shrink:0}
+.pub-row.full{opacity:.45}
+.pub-row.full .B{pointer-events:none}
+.pub-empty{font-size:11px;color:var(--t3);padding:20px 0;text-align:center}
 </style>
 </head>
 <body>
@@ -448,6 +456,17 @@ MN{flex:1;display:flex;overflow:hidden;position:relative}
   </div>
 </div>
 
+<div class="JOIN" id="pubModal">
+  <div class="jbox">
+    <h3 data-i18n="pub_title">Salons publics</h3>
+    <div id="pubList"><div class="pub-empty" data-i18n="pub_scan">Recherche des salons...</div></div>
+    <div class="jbtns" style="margin-top:12px">
+      <button class="B BG" onclick="scanPub()"><span class="bt" data-i18n="pub_refresh">Rafraichir</span></button>
+      <button class="B BP" onclick="hidePub();showJoin();return false;"><span class="bt" data-i18n="use_code">Avec un code</span></button>
+    </div>
+  </div>
+</div>
+
 <div class="USERNAME" id="userSel">
   <div class="box">
     <div class="lg-av"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
@@ -482,6 +501,7 @@ MN{flex:1;display:flex;overflow:hidden;position:relative}
       </div>
       <div class="form">
         <div class="fg"><label data-i18n="label_room_name">Nom de la salle</label><input type="text" id="roomName" data-i18n-ph="placeholder_room_name" placeholder="Ex: movie, game, love..." maxlength="20" autocomplete="off"></div>
+        <label class="chk"><input type="checkbox" id="chkPub"><span data-i18n="pub_toggle">Salon public (sans code)</span></label>
         <div class="acts">
           <button class="B BP" id="bCreate" onclick="createRoom()">
             <div class="ld"></div>
@@ -489,7 +509,7 @@ MN{flex:1;display:flex;overflow:hidden;position:relative}
             <span class="bt" data-i18n="btn_create">Creer la salle</span>
           </button>
           <div class="or" data-i18n="btn_or">ou</div>
-          <button class="B BG" id="bJoin" onclick="showJoin()">
+          <button class="B BG" id="bJoin" onclick="showPub()">
             <svg class="bt" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
             <span class="bt" data-i18n="btn_join">Rejoindre une salle</span>
           </button>
@@ -669,6 +689,7 @@ fr: {
   badge_room:'Salle', badge_pwd:'Mdp', btn_copy:'Copier',
   screen_badge:'ÉCRAN 1080p60',
   room_label:'SALLE', pill_live:'ECRAN DIRECT', lang_pick:'Choisissez votre langue',
+  pub_title:'Salons publics', pub_scan:'Recherche des salons...', pub_empty:'Aucun salon ouvert pour le moment', pub_full_row:'Complet', pub_refresh:'Rafraichir', use_code:'Avec un code', pub_toggle:'Salon public (sans code)',
   wait_title:'En attente...', wait_share:'Partage ce code :',
   hint_txt:'Active caméra + micro avec les boutons | Raccourcis: M V S C F',
   code_label:'CODE DE SALLE', code_hint:'Clique le code pour copier',
@@ -719,6 +740,7 @@ en: {
   badge_room:'Room', badge_pwd:'Pwd', btn_copy:'Copy',
   screen_badge:'SCREEN 1080p60',
   room_label:'ROOM', pill_live:'LIVE SCREEN', lang_pick:'Choose your language',
+  pub_title:'Public rooms', pub_scan:'Scanning rooms...', pub_empty:'No open room right now', pub_full_row:'Full', pub_refresh:'Refresh', use_code:'Use a code', pub_toggle:'Public room (no code)',
   wait_title:'Waiting...', wait_share:'Share the code with others :',
   hint_txt:'Enable camera + mic with buttons | Shortcuts: M V S C F',
   code_label:'ROOM CODE', code_hint:'Click code to copy',
@@ -769,6 +791,7 @@ es: {
   badge_room:'Sala', badge_pwd:'Clave', btn_copy:'Copiar',
   screen_badge:'PANTALLA 1080p60',
   room_label:'SALA', pill_live:'PANTALLA EN VIVO', lang_pick:'Elige tu idioma',
+  pub_title:'Salas publicas', pub_scan:'Buscando salas...', pub_empty:'Ninguna sala abierta ahora', pub_full_row:'Lleno', pub_refresh:'Actualizar', use_code:'Con un codigo', pub_toggle:'Sala publica (sin codigo)',
   wait_title:'Esperando...', wait_share:'Comparte el código con otros :',
   hint_txt:'Activa cámara + micro con los botones | Atajos: M V S C F',
   code_label:'CÓDIGO DE SALA', code_hint:'Clic para copiar',
@@ -809,7 +832,7 @@ es: {
 //  UTILITAIRES
 // ============================================================
 var lang = 'fr';
-var VER = 'v45';
+var VER = 'v46';
 var $ = function(id) { return document.getElementById(id); };
 var t = function(k) { return TR[lang] && TR[lang][k] ? TR[lang][k] : (TR['fr'][k] || k); };
 
@@ -1463,6 +1486,7 @@ async function reqS() {
 //  CRÉATION / REJOINDRE SALLE
 // ============================================================
 async function createRoom() {
+  if ($('chkPub') && $('chkPub').checked) { createPublic(); return; }
   if (!canRate()) { toast('Trop de tentatives, attends...', 'err'); return; }
   var rn = $('roomName').value.trim();
   if (!rn || rn.length < 1) { toast(t('toast_name_err'), 'err'); return; }
@@ -1493,19 +1517,257 @@ async function createRoom() {
     P = new Peer(MID, IC);
     hbStart();
     P.on('open', function() { toast(t('toast_room_create') + ' ' + rn, 'ok'); });
-    P.on('call', function(c) {
-      if (!c.metadata || !c.metadata.token || c.metadata.token !== SECRET) { c.close(); return; }
-      if (PEER_ID && c.peer !== PEER_ID) { c.close(); return; }
-      if (!PEER_ID) PEER_ID = c.peer;
-      REMOTE_NAME = (c.metadata.name || 'User').substr(0, 30);
-      dbg('CALL IN ok');
-      wireCall(c);
+    P.on('call', hostOnCall);
+    P.on('connection', function(c) {
+      if (c.metadata && c.metadata.probe) { answerProbe(c); return; }
+      hostOnConn(c);
     });
-    P.on('connection', function(c) { var sameGuest = !!(PEER_ID && c.peer === PEER_ID); var busy = !sameGuest && DC && !DC.destroyed && Date.now() - lastRx < 20000; if (busy) { try { c.on('open', function() { try { c.send({ type: 'full' }); } catch(e) {} setTimeout(function() { try { c.close(); } catch(e) {} }, 100); }); } catch(e) {} dbg('Rejected (room full): ' + c.peer); return; } if (sameGuest) dbg('Reconnexion du meme invite: acceptee'); if (DC) { try { DC.close(); } catch(e) {} DC = null; } doDC(c); });
     P.on('disconnected', onSigLost);
     P.on('close', function() { onDC(); });
     P.on('error', function(e) { console.error(e); toast('Erreur: ' + e.type, 'err'); setLd(b, false); });
   } catch(e) { toast('Erreur de connexion', 'err'); setLd(b, false); }
+}
+
+// ============================================================
+//  SALONS PUBLICS - emplacements fixes sondés sans serveur
+// ============================================================
+var PUB_PREFIX = 'foreverus-pub-';
+var PUB_SLOTS = 6;
+var probeP = null;
+var pubScanTimer = null;
+
+function pubSecret(idx) { return PUB_PREFIX + idx + '@pub'; }
+
+function answerProbe(c) {
+  dbg('sonde recue de ' + c.peer);
+  c.on('open', function() {
+    try {
+      var nGuests = (DC && DC.open && CONNECTED_PEERS[PEER_ID]) ? 1 : 0;
+      c.send({ t: 'info', name: ($('wNm').textContent || 'Public'), n: nGuests + 1, max: 2 });
+    } catch(e) {}
+    setTimeout(function() { try { c.close(); } catch(e) {} }, 300);
+  });
+}
+
+function hostOnCall(c) {
+  if (!c.metadata || !c.metadata.token || c.metadata.token !== SECRET) { c.close(); return; }
+  if (PEER_ID && c.peer !== PEER_ID) { c.close(); return; }
+  if (!PEER_ID) PEER_ID = c.peer;
+  REMOTE_NAME = (c.metadata.name || 'User').substr(0, 30);
+  dbg('CALL IN ok');
+  wireCall(c);
+}
+
+function hostOnConn(c) {
+  var sameGuest = !!(PEER_ID && c.peer === PEER_ID);
+  var busy = !sameGuest && DC && !DC.destroyed && Date.now() - lastRx < 20000;
+  if (busy) {
+    try { c.on('open', function() { try { c.send({ type: 'full' }); } catch(e) {} setTimeout(function() { try { c.close(); } catch(e) {} }, 100); }); } catch(e) {}
+    dbg('Rejected (room full): ' + c.peer);
+    return;
+  }
+  if (sameGuest) dbg('Reconnexion du meme invite: acceptee');
+  if (DC) { try { DC.close(); } catch(e) {} DC = null; }
+  doDC(c);
+}
+
+async function createPublic() {
+  var rn = $('roomName').value.trim();
+  if (!rn || rn.length < 1) { toast(t('toast_name_err'), 'err'); return; }
+  if (!canRate()) { toast('Trop de tentatives, attends...', 'err'); return; }
+  var b = $('bCreate');
+  setLd(b, true);
+  var order = [];
+  for (var i = 0; i < PUB_SLOTS; i++) order.push(i);
+  order.sort(function() { return Math.random() - 0.5; });
+  for (var j = 0; j < order.length; j++) {
+    dbg('essai slot public #' + order[j]);
+    var ok = await tryBindSlot(order[j], rn);
+    if (ok) { setLd(b, false); return; }
+  }
+  setLd(b, false);
+  toast(t('pub_empty'), 'err');
+}
+
+function tryBindSlot(idx, roomName) {
+  return new Promise(function(resolve) {
+    var sid = PUB_PREFIX + idx;
+    var tp;
+    var settled = false;
+    var to = setTimeout(function() {
+      if (settled) return;
+      settled = true;
+      try { tp.destroy(); } catch(e) {}
+      resolve(false);
+    }, 7000);
+    try { tp = new Peer(sid, IC); } catch(e) { settled = true; clearTimeout(to); resolve(false); return; }
+    tp.on('error', function(err) {
+      if (settled) return;
+      if (err && err.type === 'unavailable-id') {
+        settled = true; clearTimeout(to);
+        try { tp.destroy(); } catch(e) {}
+        resolve(false);
+      }
+    });
+    tp.on('open', function() {
+      if (settled) return;
+      settled = true; clearTimeout(to);
+      adoptPublicRoom(tp, idx, roomName);
+      resolve(true);
+    });
+  });
+}
+
+function adoptPublicRoom(tp, idx, roomName) {
+  host = true;
+  MID = PUB_PREFIX + idx;
+  SLOT = { audio: null, video: null };
+  LS = new MediaStream();
+  initLS();
+  REMOTE_NAME = '';
+  PEER_ID = '';
+  SECRET = pubSecret(idx);
+  P = tp;
+  toCa();
+  $('cbCode').textContent = 'PUBLIC';
+  $('codeBadge').classList.add('on');
+  $('wCd').textContent = 'PUBLIC';
+  $('wNm').textContent = roomName;
+  $('sts').style.display = 'flex';
+  $('wO').style.display = 'flex';
+  $('ov').classList.remove('on');
+  $('oN').textContent = t('overlay_waiting');
+  $('oS').textContent = t('overlay_share');
+  hbStart();
+  dbg('salon public actif slot#' + idx);
+  toast(t('toast_room_create') + ' ' + roomName, 'ok');
+  P.on('call', hostOnCall);
+  P.on('connection', function(c) {
+    if (c.metadata && c.metadata.probe) { answerProbe(c); return; }
+    hostOnConn(c);
+  });
+  P.on('disconnected', onSigLost);
+  P.on('close', function() { onDC(); });
+  P.on('error', function(e) { console.error('[FU] pub host err', e.type || e); });
+}
+
+function showPub() {
+  hideJoin();
+  $('pubModal').classList.add('on');
+  scanPub();
+  clearInterval(pubScanTimer);
+  pubScanTimer = setInterval(scanPub, 12000);
+}
+
+function hidePub() {
+  $('pubModal').classList.remove('on');
+  clearInterval(pubScanTimer);
+  pubScanTimer = null;
+  if (probeP) { try { probeP.destroy(); } catch(e) {} probeP = null; }
+}
+
+function scanPub() {
+  var box = $('pubList');
+  if (!box) return;
+  box.innerHTML = '<div class="pub-empty">' + t('pub_scan') + '</div>';
+  if (probeP) { try { probeP.destroy(); } catch(e) {} probeP = null; }
+  probeP = new Peer(gId(), { debug: 0 });
+  probeP.on('open', function() {
+    var results = [];
+    for (var i = 0; i < PUB_SLOTS; i++) results.push(probeSlot(i));
+    Promise.all(results).then(function(rows) {
+      renderPub(rows.filter(function(r) { return r.alive; }));
+    });
+  });
+  probeP.on('error', function(err) {
+    if (err && err.type === 'peer-unavailable') return;
+    var box2 = $('pubList');
+    if (box2) box2.innerHTML = '<div class="pub-empty">' + t('pub_empty') + '</div>';
+  });
+}
+
+function probeSlot(idx) {
+  return new Promise(function(resolve) {
+    var out = { idx: idx, alive: false, name: '', n: 0 };
+    var done = false;
+    var fin = function() { if (!done) { done = true; resolve(out); } };
+    setTimeout(fin, 6000);
+    var c;
+    try {
+      c = probeP.connect(PUB_PREFIX + idx, { reliable: true, serialization: 'json', metadata: { probe: true } });
+    } catch(e) { fin(); return; }
+    c.on('open', function() {
+      c.on('data', function(d) {
+        if (d && d.t === 'info') { out.alive = true; out.name = d.name || '?'; out.n = d.n || 0; out.max = d.max || 2; }
+        try { c.close(); } catch(e) {}
+        fin();
+      });
+      try { c.send({ t: 'infoq' }); } catch(e) {}
+      setTimeout(fin, 3000);
+    });
+    c.on('error', function() { fin(); });
+    c.on('close', function() { fin(); });
+  });
+}
+
+function renderPub(rows) {
+  var box = $('pubList');
+  if (!box) return;
+  if (!rows.length) { box.innerHTML = '<div class="pub-empty">' + t('pub_empty') + '</div>'; return; }
+  box.innerHTML = '';
+  rows.forEach(function(r) {
+    var full = r.n >= (r.max || 2);
+    var div = document.createElement('div');
+    div.className = 'pub-row' + (full ? ' full' : '');
+    div.innerHTML = '<span class="pn"></span><span class="pc"></span><button class="B BP" style="padding:8px 14px;font-size:11px"><span class="bt"></span></button>';
+    div.querySelector('.pn').textContent = r.name;
+    div.querySelector('.pc').textContent = r.n + '/' + (r.max || 2) + (full ? ' · ' + t('pub_full_row') : '');
+    div.querySelector('.bt').textContent = t('btn_join');
+    div.querySelector('.B').onclick = function() { hidePub(); joinPublic(r.idx); };
+    box.appendChild(div);
+  });
+}
+
+function joinPublic(idx) {
+  if (!canRate()) { toast('Trop de tentatives, attends...', 'err'); return; }
+  var b = $('bDoJoin');
+  setLd(b, false);
+  host = false;
+  MID = gId();
+  SLOT = { audio: null, video: null };
+  LS = new MediaStream();
+  initLS();
+  REMOTE_NAME = '';
+  PEER_ID = '';
+  SECRET = pubSecret(idx);
+  REMOTE_HOST = PUB_PREFIX + idx;
+  toCa();
+  hideJoin();
+  $('cbCode').textContent = 'PUBLIC';
+  $('codeBadge').classList.add('on');
+  $('wO').style.display = 'none';
+  $('ov').classList.add('on');
+  $('oN').textContent = t('overlay_waiting');
+  $('oS').textContent = t('overlay_share');
+  $('sts').style.display = 'flex';
+  P = new Peer(MID, IC);
+  hbStart();
+  P.on('open', function() {
+    var c = P.connect(REMOTE_HOST, { reliable: true, serialization: 'json' });
+    doDC(c);
+    startCall();
+  });
+  P.on('call', function(c) {
+    if (!c.metadata || !c.metadata.token || c.metadata.token !== SECRET) { c.close(); return; }
+    if (PEER_ID && c.peer !== PEER_ID) { c.close(); return; }
+    if (!PEER_ID) PEER_ID = c.peer;
+    REMOTE_NAME = (c.metadata.name || 'User').substr(0, 30);
+    dbg('CALL IN ok (guest)');
+    wireCall(c);
+  });
+  P.on('disconnected', onSigLost);
+  P.on('close', function() { onDC(); });
+  P.on('error', function(e) { console.error(e); toast(t('toast_noroom'), 'err'); });
 }
 
 function doJoin() {
