@@ -859,7 +859,7 @@ es: {
 //  UTILITAIRES
 // ============================================================
 var lang = 'fr';
-var VER = 'v59';
+var VER = 'v60';
 var $ = function(id) { return document.getElementById(id); };
 var t = function(k) { return TR[lang] && TR[lang][k] ? TR[lang][k] : (TR['fr'][k] || k); };
 
@@ -2365,7 +2365,7 @@ function hbLoop() {
     if (!P || P.destroyed) { hbOn = false; return; }
     try { if (DC && DC.open) DC.send({ t: 'hb' }); } catch(e) {}
     if (!host && (!DC || !DC.open) && Date.now() - lastTryData > 20000) { tryData(); }
-    if (!host && ROOM_ID && !takingOver && Date.now() - lastRx > 15000 && (!DC || !DC.open)) {
+    if (!host && ROOM_ID && !takingOver && Date.now() - lastRx > 35000 && (!DC || !DC.open)) {
       dbg('hote disparu sans prevenir -> takeover');
       startTakeOver();
     }
@@ -3138,6 +3138,17 @@ try {
   if (vt) vt.textContent = VER;
   var dv = document.querySelector('.dt');
   if (dv) dv.textContent = VER;
+} catch(e) {}
+
+// MODE DIAGNOSTIC: panneau logs toujours visible
+try {
+  var dbgPanel = $('dbg');
+  if (dbgPanel) {
+    dbgPanel.classList.add('on');
+    dbgPanel.style.maxHeight = '38vh';
+    dbgPanel.style.overflowY = 'auto';
+    dbgPanel.style.fontSize = '10px';
+  }
 } catch(e) {}
 
 // CHARGEMENT LANGUE - le choix de langue AVANT le message
