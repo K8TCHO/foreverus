@@ -854,7 +854,7 @@ es: {
 //  UTILITAIRES
 // ============================================================
 var lang = 'fr';
-var VER = 'v53';
+var VER = 'v54';
 var $ = function(id) { return document.getElementById(id); };
 var t = function(k) { return TR[lang] && TR[lang][k] ? TR[lang][k] : (TR['fr'][k] || k); };
 
@@ -1498,6 +1498,7 @@ function wireCall(c) {
     setTimeout(function() {
       if (CC) return;
       if (!host && DC && DC.open) startCall();
+      else if (host) hostBackToWaiting();
       else onDC();
     }, 1200);
   });
@@ -2201,14 +2202,14 @@ function doDC(c) {
     DC = null;
     if (ds) ds.className = 'dcs off';
     if (!host) {
-      var stP = $('stP');
-      if (stP) stP.className = 'st w';
-      var stT = $('stT');
-      if (stT) stT.textContent = t('status_wait');
+      var stP2 = $('stP');
+      if (stP2) stP2.className = 'st w';
+      var stT2 = $('stT');
+      if (stT2) stT2.textContent = t('status_wait');
       rcCd();
       setTimeout(tryData, 1500);
     } else {
-      onDC();
+      hostBackToWaiting();
     }
   });
   c.on('error', function(e) {
@@ -2430,6 +2431,36 @@ function onR(s) {
   $('stT').textContent = t('status_on');
   startT();
   setTimeout(kickPlay, 100);
+  vcUpd();
+}
+
+function hostBackToWaiting() {
+  dbg('invite parti: retour en attente (salle toujours vivante)');
+  REMOTE_NAME = '';
+  CONNECTED_PEERS = {};
+  RST = { mic: false, cam: false, scr: false };
+  scrTrack = null;
+  viewScrC();
+  var ds = $('dcS');
+  if (ds) ds.className = 'dcs';
+  var aE = $('audR');
+  if (aE) { aE.pause(); aE.srcObject = null; }
+  if (rV) { rV.srcObject = null; rV.remove(); rV = null; }
+  var sb = $('sbV');
+  if (sb) { sb.srcObject = null; sb.remove(); }
+  var bf = $('sbF');
+  if (bf) bf.remove();
+  var ovx = $('scrOv');
+  if (ovx) ovx.remove();
+  stopT();
+  $('stP').className = 'st on';
+  $('stT').textContent = t('status_on');
+  $('wO').style.display = 'flex';
+  $('ov').classList.remove('on');
+  $('oN').textContent = t('overlay_waiting');
+  $('oS').textContent = t('overlay_share');
+  $('scrB').classList.remove('on');
+  $('scrB').classList.remove('noaud');
   vcUpd();
 }
 
