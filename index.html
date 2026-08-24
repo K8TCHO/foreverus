@@ -513,7 +513,7 @@ MN{flex:1;display:flex;overflow:hidden;position:relative}
       </div>
       <div class="form">
         <div class="fg"><label data-i18n="label_room_name">Nom de la salle</label><input type="text" id="roomName" data-i18n-ph="placeholder_room_name" placeholder="Ex: movie, game, love..." maxlength="20" autocomplete="off"></div>
-        <label class="chk"><input type="checkbox" id="chkPub"><span data-i18n="pub_toggle">Salon public (sans code)</span></label>
+        <label class="chk"><input type="checkbox" id="chkPub" checked><span data-i18n="pub_toggle">Salon public (sans code)</span></label>
         <div class="acts">
           <button class="B BP" id="bCreate" onclick="createRoom()">
             <div class="ld"></div>
@@ -851,7 +851,7 @@ es: {
 //  UTILITAIRES
 // ============================================================
 var lang = 'fr';
-var VER = 'v49';
+var VER = 'v51';
 var $ = function(id) { return document.getElementById(id); };
 var t = function(k) { return TR[lang] && TR[lang][k] ? TR[lang][k] : (TR['fr'][k] || k); };
 
@@ -1733,15 +1733,17 @@ var pubScanTimer = null;
 
 function pubSecret(idx) { return PUB_PREFIX + idx + '@pub'; }
 
+function replyInfo(c) {
+  try {
+    var nGuests = (DC && DC.open && CONNECTED_PEERS[PEER_ID]) ? 1 : 0;
+    c.send({ t: 'info', name: ($('wNm').textContent || 'Public'), n: nGuests + 1, max: 2 });
+  } catch(e) {}
+  setTimeout(function() { try { c.close(); } catch(e) {} }, 250);
+}
+
 function answerProbe(c) {
   dbg('sonde recue de ' + c.peer);
-  c.on('open', function() {
-    try {
-      var nGuests = (DC && DC.open && CONNECTED_PEERS[PEER_ID]) ? 1 : 0;
-      c.send({ t: 'info', name: ($('wNm').textContent || 'Public'), n: nGuests + 1, max: 2 });
-    } catch(e) {}
-    setTimeout(function() { try { c.close(); } catch(e) {} }, 300);
-  });
+  c.on('open', function() { replyInfo(c); });
 }
 
 function hostOnCall(c) {
@@ -1754,6 +1756,10 @@ function hostOnCall(c) {
 }
 
 function hostOnConn(c) {
+  continueGuestConn(c);
+}
+
+function continueGuestConn(c) {
   var sameGuest = !!(PEER_ID && c.peer === PEER_ID);
   var busy = !sameGuest && DC && !DC.destroyed && Date.now() - lastRx < 20000;
   if (busy) {
@@ -1849,47 +1855,69 @@ function adoptPublicRoom(tp, idx, roomName) {
   P.on('error', function(e) { console.error('[FU] pub host err', e.type || e); });
 }
 
+var pubScanGen = 0;
+var pubEverRendered = false;
+
 function showPub() {
   hideJoin();
   $('pubModal').classList.add('on');
-  scanPub();
   clearInterval(pubScanTimer);
-  pubScanTimer = setInterval(scanPub, 12000);
+  if (!pubEverRendered) {
+    var box0 = $('pubList');
+    if (box0) box0.innerHTML = '<div class="pub-empty">' + t('pub_scan') + '</div>';
+  }
+  scanPub(false);
+  pubScanTimer = setInterval(function() { scanPub(true); }, 10000);
 }
 
 function hidePub() {
   $('pubModal').classList.remove('on');
   clearInterval(pubScanTimer);
   pubScanTimer = null;
+  pubScanGen++;
   if (probeP) { try { probeP.destroy(); } catch(e) {} probeP = null; }
 }
 
-function scanPub() {
-  var box = $('pubList');
-  if (!box) return;
-  box.innerHTML = '<div class="pub-empty">' + t('pub_scan') + '</div>';
+function ensureProbe(cb) {
+  if (probeP && !probeP.destroyed && !probeP.disconnected) { cb(); return; }
   if (probeP) { try { probeP.destroy(); } catch(e) {} probeP = null; }
   probeP = new Peer(gId(), { debug: 0 });
+  var opened = false;
   probeP.on('open', function() {
+    if (opened) return;
+    opened = true;
+    cb();
+  });
+  probeP.on('disconnected', function() {
+    try { if (probeP && !probeP.destroyed) probeP.reconnect(); } catch(e) {}
+  });
+}
+
+function scanPub(soft) {
+  var gen = ++pubScanGen;
+  var box = $('pubList');
+  if (!box) return;
+  if (!soft && !pubEverRendered) {
+    box.innerHTML = '<div class="pub-empty">' + t('pub_scan') + '</div>';
+  }
+  ensureProbe(function() {
+    if (gen !== pubScanGen) return;
     var results = [];
     for (var i = 0; i < PUB_SLOTS; i++) results.push(probeSlot(i));
     Promise.all(results).then(function(rows) {
+      if (gen !== pubScanGen) return;
       renderPub(rows.filter(function(r) { return r.alive; }));
     });
-  });
-  probeP.on('error', function(err) {
-    if (err && err.type === 'peer-unavailable') return;
-    var box2 = $('pubList');
-    if (box2) box2.innerHTML = '<div class="pub-empty">' + t('pub_empty') + '</div>';
   });
 }
 
 function probeSlot(idx) {
   return new Promise(function(resolve) {
     var out = { idx: idx, alive: false, name: '', n: 0 };
+    if (!probeP || probeP.destroyed || probeP.disconnected || !probeP.open) { resolve(out); return; }
     var done = false;
     var fin = function() { if (!done) { done = true; resolve(out); } };
-    setTimeout(fin, 6000);
+    setTimeout(fin, 4500);
     var c;
     try {
       c = probeP.connect(PUB_PREFIX + idx, { reliable: true, serialization: 'json', metadata: { probe: true } });
@@ -1911,6 +1939,7 @@ function probeSlot(idx) {
 function renderPub(rows) {
   var box = $('pubList');
   if (!box) return;
+  pubEverRendered = true;
   if (!rows.length) { box.innerHTML = '<div class="pub-empty">' + t('pub_empty') + '</div>'; return; }
   box.innerHTML = '';
   rows.forEach(function(r) {
@@ -2048,6 +2077,13 @@ function doDC(c) {
     try {
       if (!d || typeof d !== 'object') return;
       lastRx = Date.now();
+      if (d.t === 'infoq' && !d.type) {
+        dbg('sonde recue (data handler)');
+        replyInfo(c);
+        c._wasProbe = true;
+        if (DC === c) { DC = null; var dsel = $('dcS'); if (dsel) dsel.className = 'dcs'; }
+        return;
+      }
       if (d.type === 'auth') {
         if (d.token === SECRET) {
           if (!CONNECTED_PEERS[c.peer]) {
@@ -2120,6 +2156,7 @@ function doDC(c) {
     } catch(e) { console.error('data', e); }
   });
   c.on('close', function() {
+    if (c._wasProbe) { dbg('sonde fermee'); return; }
     if (DC !== c) return;
     dbg('DC closed');
     DC = null;
