@@ -859,7 +859,7 @@ es: {
 //  UTILITAIRES
 // ============================================================
 var lang = 'fr';
-var VER = 'v57';
+var VER = 'v58';
 var $ = function(id) { return document.getElementById(id); };
 var t = function(k) { return TR[lang] && TR[lang][k] ? TR[lang][k] : (TR['fr'][k] || k); };
 
@@ -1047,6 +1047,227 @@ function supaList() {
   var cutoff = new Date(Date.now() - 30000).toISOString();
   return fetch(SUPA_URL + '/rest/v1/rooms?select=id,name,n,peer_id&last_seen=gt.' + cutoff + '&order=last_seen.desc', { headers: supaHeaders() })
     .then(function(r) { if (!r.ok) throw new Error('list ' + r.status); return r.json(); });
+}
+
+// ============================================================
+//  SIG - signalisation Supabase Realtime + WebRTC direct
+//  Remplace le broker PeerJS: offres/reponses/candidats ICE
+//  transitent par un canal temps réel unique par salon.
+// ============================================================
+var SIG = {
+  ws: null, wsOpen: false, joined: false,
+  chan: '', myId: '', target: '', role: null,
+  pc: null, dcWrap: null, cc: null,
+  hbT: null, retryT: null, attempts: 0,
+  pendingIce: [], closing: false
+};
+
+function sigUrl() {
+  var ref = SUPA_URL.replace(/^https?:\/\//, '').split('.')[0];
+  return 'wss://' + ref + '.supabase.co/realtime/v1/websocket?vsn=1.0.0&apikey=' + encodeURIComponent(SUPA_KEY);
+}
+function sigSendRaw(obj) {
+  try { if (SIG.ws && SIG.wsOpen) SIG.ws.send(JSON.stringify(obj)); } catch(e) {}
+}
+function sigBroadcast(payload) {
+  sigSendRaw({ topic: 'realtime:' + SIG.chan, event: 'broadcast', ref: '', payload: { type: 'broadcast', event: 'sig', payload: payload } });
+}
+function sigToPeer(payload) { payload.from = SIG.myId; payload.to = SIG.target; sigBroadcast(payload); }
+
+function sigOpen(chanName, myId) {
+  if (SIG.ws) { try { SIG.ws.onclose = null; SIG.ws.close(); } catch(e) {} }
+  SIG.chan = chanName; SIG.myId = myId; SIG.joined = false;
+  dbg('SIG: ouverture canal ' + chanName);
+  try { SIG.ws = new WebSocket(sigUrl()); } catch(e) { dbg('SIG ws err: ' + e.message); return; }
+  SIG.ws.onopen = function() {
+    SIG.wsOpen = true;
+    sigSendRaw({ topic: 'realtime:' + SIG.chan, event: 'phx_join', ref: '' , payload: { config: { broadcast: { self: false, ack: false }, presence: { key: myId } } } });
+    clearInterval(SIG.hbT);
+    SIG.hbT = setInterval(function() { sigSendRaw({ topic: 'phoenix', event: 'heartbeat', ref: '', payload: {} }); }, 25000);
+  };
+  SIG.ws.onmessage = function(ev) {
+    var m;
+    try { m = JSON.parse(ev.data); } catch(e) { return; }
+    if (m.event === 'phx_reply' && m.payload && m.payload.status === 'ok') {
+      var isJoin = m.topic === 'realtime:' + SIG.chan;
+      if (isJoin && !SIG.joined) { SIG.joined = true; dbg('SIG: canal rejoint'); }
+    }
+    if (m.event === 'broadcast' && m.payload && m.payload.event === 'sig') {
+      var p = m.payload.payload || {};
+      if (p.to && p.to !== SIG.myId) return;
+      sigOnSignal(p);
+    }
+  };
+  SIG.ws.onclose = function() {
+    SIG.wsOpen = false; SIG.joined = false;
+    if (SIG.closing) return;
+    dbg('SIG: canal perdu, reconnexion...');
+    setTimeout(function() { if (!SIG.closing) sigOpen(SIG.chan, SIG.myId); }, 2000);
+  };
+  SIG.ws.onerror = function() {};
+}
+
+function sigMakePC() {
+  return new RTCPeerConnection({ iceServers: IC.iceServers, iceCandidatePoolSize: 10 });
+}
+function sigAddLocalTracks(pc) {
+  try { if (LS && LS.getTracks().length) LS.getTracks().forEach(function(t) { try { pc.addTrack(t, LS); } catch(e) {} }); } catch(e) {}
+}
+function sigWirePC(pc, fromId) {
+  pc.onicecandidate = function(ev) {
+    if (ev.candidate && fromId) sigToPeer({ k: 'ice', to: fromId, cand: ev.candidate.toJSON ? ev.candidate.toJSON() : ev.candidate });
+  };
+  pc.ontrack = function(ev) {
+    var stream = (ev.streams && ev.streams[0]) || null;
+    if (!stream) {
+      stream = new MediaStream([ev.track]);
+    }
+    if (SIG.cc && SIG.cc._streamHandler) { try { SIG.cc._streamHandler(stream); } catch(e) {} }
+  };
+  pc.onconnectionstatechange = function() {
+    var st = pc.connectionState;
+    if (st === 'connected' || st === 'failed' || st === 'closed') dbg('PC state: ' + st);
+    if ((st === 'failed' || st === 'closed') && SIG.pc === pc) {
+      if (CC && CC.peerConnection === pc) { try { CC.close(); } catch(e2) {} CC = null; }
+    }
+  };
+}
+function sigTeardownAll() {
+  SIG.closing = true;
+  try { if (SIG.pc) SIG.pc.close(); } catch(e) {}
+  SIG.pc = null; SIG.dcWrap = null; SIG.cc = null;
+  try { if (SIG.ws) SIG.ws.close(); } catch(e) {}
+  SIG.ws = null; SIG.wsOpen = false; SIG.joined = false;
+  clearInterval(SIG.hbT);
+}
+function sigResetMedia() {
+  SIG.attempts = 0;
+  try { if (SIG.pc) SIG.pc.close(); } catch(e) {}
+  SIG.pc = null;
+  if (SIG.dcWrap) { SIG.dcWrap._dead = true; }
+  SIG.dcWrap = null;
+}
+
+function DcWrap(rtc, peerId) {
+  var self = this;
+  this._rtc = rtc;
+  this._h = {};
+  this._dead = false;
+  this.peer = peerId || '';
+  rtc.onopen = function() { self._fire('open'); };
+  rtc.onmessage = function(ev) {
+    var d;
+    try { d = JSON.parse(ev.data); } catch(e) { return; }
+    self._fire('data', d);
+  };
+  rtc.onclose = function() { if (!self._dead) { self._dead = true; self._fire('close'); } };
+  rtc.onerror = function(e) { self._fire('error', e); };
+  if (rtc.readyState === 'open') setTimeout(function() { self._fire('open'); }, 0);
+}
+DcWrap.prototype._fire = function(ev, arg) {
+  try { if (this._h[ev]) this._h[ev](arg); } catch(e) { console.error('[FU] dc ' + ev, e); }
+};
+Object.defineProperty(DcWrap.prototype, 'open', { get: function() { return !!this._rtc && this._rtc.readyState === 'open' && !this._dead; } });
+DcWrap.prototype.send = function(o) { this._rtc.send(JSON.stringify(o)); };
+DcWrap.prototype.close = function() { this._dead = true; try { this._rtc.close(); } catch(e) {} };
+DcWrap.prototype.on = function(ev, fn) { this._h[ev] = fn; };
+
+function sigMakeCC(pc) {
+  var cc = {
+    peerConnection: pc,
+    closed: false,
+    _streamHandler: null,
+    close: function() { cc.closed = true; try { pc.close(); } catch(e) {} },
+    on: function(ev, fn) { if (ev === 'stream') cc._streamHandler = fn; }
+  };
+  return cc;
+}
+
+function sigAcceptOffer(p) {
+  dbg('SIG: offre recue de ' + p.from);
+  sigResetMedia();
+  var pc = sigMakePC();
+  SIG.pc = pc;
+  SIG.role = 'host';
+  SIG.target = p.from;
+  sigAddLocalTracks(pc);
+  sigWirePC(pc, p.from);
+  pc.ondatachannel = function(ev) {
+    var wrap = new DcWrap(ev.channel, p.from);
+    SIG.dcWrap = wrap;
+    doDC(wrap);
+  };
+  var sdesc = new RTCSessionDescription({ type: 'offer', sdp: p.sdp });
+  pc.setRemoteDescription(sdesc).then(function() {
+    sigAddLocalTracks(pc);
+    return pc.createAnswer();
+  }).then(function(ans) {
+    return pc.setLocalDescription(ans);
+  }).then(function() {
+    sigToPeer({ k: 'answer', to: p.from, sdp: pc.localDescription.sdp });
+    SIG.pendingIce.forEach(function(c) { try { pc.addIceCandidate(c); } catch(e) {} });
+    SIG.pendingIce = [];
+  }).catch(function(e) { dbg('SIG answer err: ' + e.message); });
+}
+
+function sigOnSignal(p) {
+  if (!p || !p.k) return;
+  if (p.k === 'offer') {
+    if (p.from === SIG.myId) return;
+    var partnerActive = DC && DC.open && CONNECTED_PEERS[PEER_ID];
+    if (partnerActive && PEER_ID && p.from !== PEER_ID) {
+      sigBroadcast({ k: 'busy', from: SIG.myId, to: p.from });
+      return;
+    }
+    sigAcceptOffer(p);
+    return;
+  }
+  if (p.k === 'answer') {
+    if (!SIG.pc || SIG.role !== 'guest') return;
+    var sd = new RTCSessionDescription({ type: 'answer', sdp: p.sdp });
+    SIG.pc.setRemoteDescription(sd).then(function() {
+      SIG.pendingIce.forEach(function(c) { try { SIG.pc.addIceCandidate(c); } catch(e) {} });
+      SIG.pendingIce = [];
+    }).catch(function(e) { dbg('SIG remote err: ' + e.message); });
+    return;
+  }
+  if (p.k === 'ice') {
+    if (!SIG.pc || !p.cand) return;
+    if (!SIG.pc.remoteDescription || !SIG.pc.remoteDescription.type) { SIG.pendingIce.push(p.cand); return; }
+    try { SIG.pc.addIceCandidate(new RTCIceCandidate(p.cand)); } catch(e) {}
+    return;
+  }
+  if (p.k === 'busy') {
+    toast(t('toast_full'), 'err');
+    sigResetMedia();
+    return;
+  }
+}
+
+function sigEnsureConnected() {
+  if (host || !SIG.joined) return;
+  if (SIG.pc && SIG.pc.connectionState !== 'failed' && SIG.pc.connectionState !== 'closed') return;
+  if (SIG.attempts >= 6) { dbg('SIG: abandon apres 6 essais'); return; }
+  SIG.attempts++;
+  dbg('SIG: tentative connexion media #' + SIG.attempts);
+  sigResetMedia();
+  SIG.role = 'guest';
+  var pc = sigMakePC();
+  SIG.pc = pc;
+  sigWirePC(pc, SIG.target);
+  var rtc = pc.createDataChannel('dc');
+  var wrap = new DcWrap(rtc, SIG.target);
+  SIG.dcWrap = wrap;
+  doDC(wrap);
+  sigAddLocalTracks(pc);
+  pc.createOffer().then(function(off) {
+    return pc.setLocalDescription(off);
+  }).then(function() {
+    sigToPeer({ k: 'offer', sdp: pc.localDescription.sdp, nm: (USER_NAME || 'User').substr(0, 30) });
+  }).catch(function(e) {
+    dbg('SIG offer err: ' + e.message);
+    setTimeout(function() { sigEnsureConnected(); }, 2500);
+  });
 }
 
 var VQ = {
@@ -1480,12 +1701,13 @@ function lsSetSlots(aTrack, vTrack) {
 }
 
 function restartMedia(reason) {
-  if (!P || P.destroyed) return;
-  var tg = host ? PEER_ID : REMOTE_HOST;
-  dbg('MEDIA RESTART (' + reason + ')');
-  try { if (CC) CC.close(); } catch(e) {}
-  CC = null;
-  setTimeout(startCall, 350);
+  dbg('MEDIA SYNC (' + reason + ')');
+  if (!SIG.pc || SIG.pc.connectionState !== 'connected') return;
+  ['audio', 'video'].forEach(function(k) {
+    var sd = senderFor(k);
+    var tk = SLOT[k];
+    if (sd && tk) { try { sd.replaceTrack(tk); dbg('sync' + k + ' OK'); } catch(e) { dbg('sync' + k + ' err: ' + e.message); } }
+  });
 }
 
 function initLS() {  try {
@@ -1508,20 +1730,18 @@ function initLS() {  try {
   }
 }
 
+function makeShim(id) {
+  return {
+    destroyed: false,
+    disconnected: false,
+    id: id,
+    reconnect: function() { dbg('SIG: relance canal'); sigOpen(SIG.chan, SIG.myId); },
+    destroy: function() { sigTeardownAll(); this.destroyed = true; }
+  };
+}
+
 function startCall() {
-  if (!P || P.destroyed) return;
-  if (CC) return;
-  if (!host && !REMOTE_HOST) return;
-  if (host && !PEER_ID) return;
-  var tg = host ? PEER_ID : REMOTE_HOST;
-  if (!tg) return;
-  dbg('CALL OUT -> ' + tg);
-  try {
-    var cl = P.call(tg, LS, {
-      metadata: { quality: cQ, token: SECRET, name: (USER_NAME || 'User').substr(0, 30) }
-    });
-    if (cl) wireCall(cl);
-  } catch(e) { dbg('call err: ' + e.message); }
+  if (!host) { sigEnsureConnected(); }
 }
 
 function wireCall(c) {
@@ -1535,18 +1755,6 @@ function wireCall(c) {
       else dbg('PC absent apres wire');
     } catch(e) { dbg('PC diag err: ' + e.message); }
   }, 2000);
-  c.on('close', function() {
-    if (CC !== c) return;
-    dbg('CALL closed');
-    CC = null;
-    setTimeout(function() {
-      if (CC) return;
-      if (!host && DC && DC.open) startCall();
-      else if (host) hostBackToWaiting();
-      else onDC();
-    }, 1200);
-  });
-  c.on('error', function(e) { console.error('[FU] call err', e); });
   try { if (c.peerConnection) { doSt(c.peerConnection); boostRate(c.peerConnection); } } catch(e) {}
   if (old && old !== c) { try { old.close(); } catch(e) {} }
 }
@@ -1748,7 +1956,7 @@ async function createRoom() {
   setLd(b, true);
   try {
     host = true;
-    MID = rm + '-host';
+    MID = gId();
     SLOT = { audio: null, video: null };
     LS = new MediaStream();
     initLS();
@@ -1767,15 +1975,12 @@ async function createRoom() {
     $('ov').classList.remove('on');
     $('oN').textContent = t('overlay_waiting');
     $('oS').textContent = t('overlay_share');
-    
-    P = new Peer(MID, IC);
+
+    P = makeShim(MID);
     hbStart();
-    P.on('open', function() { toast(t('toast_room_create') + ' ' + rn, 'ok'); });
-    P.on('call', hostOnCall);
-    P.on('connection', function(c) { hostOnConn(c); });
-    P.on('disconnected', onSigLost);
-    P.on('close', function() { onDC(); });
-    P.on('error', function(e) { console.error(e); toast('Erreur: ' + e.type, 'err'); setLd(b, false); });
+    SIG.target = '';
+    sigOpen('pv:' + rm.toUpperCase(), MID);
+    toast(t('toast_room_create') + ' ' + rn, 'ok');
   } catch(e) { toast('Erreur de connexion', 'err'); setLd(b, false); }
 }
 
@@ -1787,32 +1992,6 @@ var roomOwnerFlag = false;
 var pubScanTimer = null;
 var pubScanGen = 0;
 var pubEverRendered = false;
-
-function hostOnCall(c) {
-  if (!c.metadata || !c.metadata.token || c.metadata.token !== SECRET) { c.close(); return; }
-  if (PEER_ID && c.peer !== PEER_ID) { c.close(); return; }
-  if (!PEER_ID) PEER_ID = c.peer;
-  REMOTE_NAME = (c.metadata.name || 'User').substr(0, 30);
-  dbg('CALL IN ok');
-  wireCall(c);
-}
-
-function hostOnConn(c) {
-  continueGuestConn(c);
-}
-
-function continueGuestConn(c) {
-  var sameGuest = !!(PEER_ID && c.peer === PEER_ID);
-  var busy = !sameGuest && DC && !DC.destroyed && Date.now() - lastRx < 20000;
-  if (busy) {
-    try { c.on('open', function() { try { c.send({ type: 'full' }); } catch(e) {} setTimeout(function() { try { c.close(); } catch(e) {} }, 100); }); } catch(e) {}
-    dbg('Rejected (room full): ' + c.peer);
-    return;
-  }
-  if (sameGuest) dbg('Reconnexion du meme invite: acceptee');
-  if (DC) { try { DC.close(); } catch(e) {} DC = null; }
-  doDC(c);
-}
 
 async function createPublic() {
   var rn = $('roomName').value.trim();
@@ -1843,25 +2022,20 @@ async function createPublic() {
   var cw = document.querySelector('.WT .code-wrap');
   if (cw) cw.style.display = 'none';
   $('wS').textContent = t('overlay_waiting');
-  P = new Peer(MID, IC);
+  P = makeShim(MID);
   hbStart();
-  P.on('open', function() {
-    supaCreateRoom(ROOM_ID, rn, MID).then(function() {
-      roomOwnerFlag = true;
-      dbg('salon enregistre dans annuaire: ' + ROOM_ID);
-      clearInterval(HB_TIMER);
-      HB_TIMER = setInterval(function() { supaBeat((DC && DC.open && CONNECTED_PEERS[PEER_ID]) ? 2 : 1); }, 8000);
-      toast(t('toast_room_create') + ' ' + rn, 'ok');
-    }).catch(function(e) {
-      dbg('annuaire err: ' + e.message);
-      toast(t('pub_empty'), 'err');
-    });
+  SIG.target = '';
+  sigOpen('pub:' + ROOM_ID, MID);
+  supaCreateRoom(ROOM_ID, rn, MID).then(function() {
+    roomOwnerFlag = true;
+    dbg('salon enregistre dans annuaire: ' + ROOM_ID);
+    clearInterval(HB_TIMER);
+    HB_TIMER = setInterval(function() { supaBeat((DC && DC.open && CONNECTED_PEERS[PEER_ID]) ? 2 : 1); }, 8000);
+    toast(t('toast_room_create') + ' ' + rn, 'ok');
+  }).catch(function(e) {
+    dbg('annuaire err: ' + e.message);
+    toast(t('pub_empty'), 'err');
   });
-  P.on('call', hostOnCall);
-  P.on('connection', function(c) { continueGuestConn(c); });
-  P.on('disconnected', onSigLost);
-  P.on('close', function() { onDC(); });
-  P.on('error', function(e) { console.error('[FU] pub host err', e.type || e); });
 }
 
 var pubScanGen = 0;
@@ -1949,24 +2123,10 @@ function joinPublic(row) {
   $('oN').textContent = t('overlay_waiting');
   $('oS').textContent = t('overlay_share');
   $('sts').style.display = 'flex';
-  P = new Peer(MID, IC);
+  P = makeShim(MID);
   hbStart();
-  P.on('open', function() {
-    var c = P.connect(REMOTE_HOST, { reliable: true, serialization: 'json' });
-    doDC(c);
-    startCall();
-  });
-  P.on('call', function(c) {
-    if (!c.metadata || !c.metadata.token || c.metadata.token !== SECRET) { c.close(); return; }
-    if (PEER_ID && c.peer !== PEER_ID) { c.close(); return; }
-    if (!PEER_ID) PEER_ID = c.peer;
-    REMOTE_NAME = (c.metadata.name || 'User').substr(0, 30);
-    dbg('CALL IN ok (guest)');
-    wireCall(c);
-  });
-  P.on('disconnected', onSigLost);
-  P.on('close', function() { onDC(); });
-  P.on('error', function(e) { console.error(e); toast(t('toast_noroom'), 'err'); });
+  SIG.target = row.peer_id;
+  sigOpen('pub:' + row.id, MID);
 }
 
 function doJoin() {
@@ -1984,7 +2144,6 @@ function doJoin() {
     REMOTE_NAME = '';
     PEER_ID = '';
     SECRET = rm.toUpperCase() + '@secret';
-    REMOTE_HOST = rm + '-host';
     ROOM_ID = null;
     toCa();
     setLd(b, false);
@@ -1996,24 +2155,10 @@ function doJoin() {
     $('oN').textContent = t('overlay_waiting');
     $('oS').textContent = t('overlay_share');
     $('sts').style.display = 'flex';
-    P = new Peer(MID, IC);
+    P = makeShim(MID);
     hbStart();
-    P.on('open', function() {
-      var c = P.connect(REMOTE_HOST, { reliable: true, serialization: 'json' });
-      doDC(c);
-      startCall();
-    });
-    P.on('call', function(c) {
-      if (!c.metadata || !c.metadata.token || c.metadata.token !== SECRET) { c.close(); return; }
-      if (PEER_ID && c.peer !== PEER_ID) { c.close(); return; }
-      if (!PEER_ID) PEER_ID = c.peer;
-      REMOTE_NAME = (c.metadata.name || 'User').substr(0, 30);
-      dbg('CALL IN ok (guest)');
-      wireCall(c);
-    });
-    P.on('disconnected', onSigLost);
-    P.on('close', function() { onDC(); });
-    P.on('error', function(e) { console.error(e); toast(t('toast_noroom'), 'err'); setLd(b, false); });
+    SIG.target = '';
+    sigOpen('pv:' + rm, MID);
   } catch(e) { toast('Erreur de connexion', 'err'); setLd(b, false); }
 }
 
@@ -2165,14 +2310,12 @@ function doDC(c) {
 }
 
 function tryData() {
-  if (!P || P.destroyed || host) return;
+  if (host) return;
+  if (!SIG.joined) return;
   if (DC && DC.open) return;
   lastTryData = Date.now();
   dbg('tryData: reconnect...');
-  try {
-    var c = P.connect(REMOTE_HOST, { reliable: true, serialization: 'json' });
-    doDC(c);
-  } catch(e) { dbg('tryData err: ' + e.message); }
+  sigEnsureConnected();
 }
 
 // ============================================================
@@ -2183,18 +2326,7 @@ function onSigLost() {
   if (stP) stP.className = 'st w';
   var stT = $('stT');
   if (stT) stT.textContent = t('status_wait');
-  rcCd();
-  setTimeout(function() {
-    if (!P || P.destroyed) return;
-    try { if (P.disconnected) P.reconnect(); } catch(e) {}
-    if (!host && (!DC || !DC.open)) { tryData(); }
-    if (DC && DC.open) {
-      try { DC.send({ type: 'auth', token: SECRET }); flushQ(); } catch(e) {}
-      var ds = $('dcS');
-      if (ds) ds.className = 'dcs on';
-    }
-    startCall();
-  }, 3000);
+  if (!host) rcCd();
 }
 
 function rcCd() {
@@ -2681,7 +2813,7 @@ function startTakeOver() {
   REMOTE_NAME = '';
   CONNECTED_PEERS = {};
   takingOver = false;
-  P.on('connection', function(cc) { continueGuestConn(cc); });
+  SIG.role = 'host';
   supaPatchPeer(ROOM_ID, MID, 1).then(function() {
     dbg('annuaire mis a jour: je suis le serveur');
     roomOwnerFlag = true;
