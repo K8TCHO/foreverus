@@ -854,7 +854,7 @@ es: {
 //  UTILITAIRES
 // ============================================================
 var lang = 'fr';
-var VER = 'v54';
+var VER = 'v55';
 var $ = function(id) { return document.getElementById(id); };
 var t = function(k) { return TR[lang] && TR[lang][k] ? TR[lang][k] : (TR['fr'][k] || k); };
 
@@ -1003,6 +1003,45 @@ IC.secure = true;
 
 function peerSigOpts() {
   return { host: IC.host, port: IC.port, path: IC.path, key: IC.key, secure: IC.secure, debug: 0 };
+}
+
+// ============================================================
+//  ANNUAIRE CENTRALISÉ (Supabase) - liste des salons publics
+// ============================================================
+var SUPA_URL = 'https://rjcychxzbzuzcrvbcqze.supabase.co';
+var SUPA_KEY = 'sb_publishable_CYE8teg53Yt7RXMJb4sThw_bL2qjL0I';
+var ROOM_ID = null;
+var HB_TIMER = null;
+
+function supaHeaders() {
+  return { apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' };
+}
+function supaCreateRoom(id, name, peerId) {
+  return fetch(SUPA_URL + '/rest/v1/rooms', {
+    method: 'POST', headers: supaHeaders(),
+    body: JSON.stringify({ id: id, name: name, peer_id: peerId, n: 1 })
+  }).then(function(r) { if (!r.ok) throw new Error('create ' + r.status); return true; });
+}
+function supaBeat(n) {
+  if (!ROOM_ID) return;
+  fetch(SUPA_URL + '/rest/v1/rooms?id=eq.' + ROOM_ID, {
+    method: 'PATCH', headers: supaHeaders(),
+    body: JSON.stringify({ last_seen: new Date().toISOString(), n: n })
+  }).catch(function() {});
+}
+function supaPatchPeer(id, newPeer, n) {
+  return fetch(SUPA_URL + '/rest/v1/rooms?id=eq.' + id, {
+    method: 'PATCH', headers: supaHeaders(),
+    body: JSON.stringify({ peer_id: newPeer, last_seen: new Date().toISOString(), n: n || 1 })
+  }).then(function(r) { if (!r.ok) throw new Error('patch ' + r.status); return true; });
+}
+function supaDelete(id) {
+  return fetch(SUPA_URL + '/rest/v1/rooms?id=eq.' + id, { method: 'DELETE', headers: supaHeaders() }).catch(function() {});
+}
+function supaList() {
+  var cutoff = new Date(Date.now() - 30000).toISOString();
+  return fetch(SUPA_URL + '/rest/v1/rooms?select=id,name,n,peer_id&last_seen=gt.' + cutoff + '&order=last_seen.desc', { headers: supaHeaders() })
+    .then(function(r) { if (!r.ok) throw new Error('list ' + r.status); return r.json(); });
 }
 
 var VQ = {
@@ -1711,7 +1750,7 @@ async function createRoom() {
     REMOTE_NAME = '';
     PEER_ID = '';
     SECRET = rm.toUpperCase() + '@secret';
-    PUB_IDX = -1;
+    ROOM_ID = null;
     toCa();
     setLd(b, false);
     $('cbCode').textContent = rm;
@@ -1728,10 +1767,7 @@ async function createRoom() {
     hbStart();
     P.on('open', function() { toast(t('toast_room_create') + ' ' + rn, 'ok'); });
     P.on('call', hostOnCall);
-    P.on('connection', function(c) {
-      if (c.metadata && c.metadata.probe) { answerProbe(c); return; }
-      hostOnConn(c);
-    });
+    P.on('connection', function(c) { hostOnConn(c); });
     P.on('disconnected', onSigLost);
     P.on('close', function() { onDC(); });
     P.on('error', function(e) { console.error(e); toast('Erreur: ' + e.type, 'err'); setLd(b, false); });
@@ -1739,29 +1775,12 @@ async function createRoom() {
 }
 
 // ============================================================
-//  SALONS PUBLICS - emplacements fixes sondés sans serveur
+//  SALONS PUBLICS - annuaire centralisé Supabase
 // ============================================================
-var PUB_PREFIX = 'foreverus-pub-';
-var PUB_IDX = -1;
 var takingOver = false;
-var PUB_SLOTS = 6;
-var probeP = null;
 var pubScanTimer = null;
-
-function pubSecret(idx) { return PUB_PREFIX + idx + '@pub'; }
-
-function replyInfo(c) {
-  try {
-    var nGuests = (DC && DC.open && CONNECTED_PEERS[PEER_ID]) ? 1 : 0;
-    c.send({ t: 'info', name: ($('wNm').textContent || 'Public'), n: nGuests + 1, max: 2 });
-  } catch(e) {}
-  setTimeout(function() { try { c.close(); } catch(e) {} }, 250);
-}
-
-function answerProbe(c) {
-  dbg('sonde recue de ' + c.peer);
-  c.on('open', function() { replyInfo(c); });
-}
+var pubScanGen = 0;
+var pubEverRendered = false;
 
 function hostOnCall(c) {
   if (!c.metadata || !c.metadata.token || c.metadata.token !== SECRET) { c.close(); return; }
@@ -1795,79 +1814,44 @@ async function createPublic() {
   if (!canRate()) { toast('Trop de tentatives, attends...', 'err'); return; }
   var b = $('bCreate');
   setLd(b, true);
-  var order = [];
-  for (var i = 0; i < PUB_SLOTS; i++) order.push(i);
-  order.sort(function() { return Math.random() - 0.5; });
-  for (var j = 0; j < order.length; j++) {
-    dbg('essai slot public #' + order[j]);
-    var ok = await tryBindSlot(order[j], rn);
-    if (ok) { setLd(b, false); return; }
-  }
-  setLd(b, false);
-  toast(t('pub_empty'), 'err');
-}
-
-function tryBindSlot(idx, roomName) {
-  return new Promise(function(resolve) {
-    var sid = PUB_PREFIX + idx;
-    var tp;
-    var settled = false;
-    var to = setTimeout(function() {
-      if (settled) return;
-      settled = true;
-      try { tp.destroy(); } catch(e) {}
-      resolve(false);
-    }, 7000);
-    try { tp = new Peer(sid, IC); } catch(e) { settled = true; clearTimeout(to); resolve(false); return; }
-    tp.on('error', function(err) {
-      if (settled) return;
-      if (err && err.type === 'unavailable-id') {
-        settled = true; clearTimeout(to);
-        try { tp.destroy(); } catch(e) {}
-        resolve(false);
-      }
-    });
-    tp.on('open', function() {
-      if (settled) return;
-      settled = true; clearTimeout(to);
-      adoptPublicRoom(tp, idx, roomName);
-      resolve(true);
-    });
-  });
-}
-
-function adoptPublicRoom(tp, idx, roomName) {
   host = true;
-  MID = PUB_PREFIX + idx;
-  PUB_IDX = idx;
+  MID = gId();
+  ROOM_ID = 'P' + cryR(7).toUpperCase();
+  SECRET = 'pub@' + ROOM_ID;
   SLOT = { audio: null, video: null };
   LS = new MediaStream();
   initLS();
   REMOTE_NAME = '';
   PEER_ID = '';
-  SECRET = pubSecret(idx);
-  P = tp;
   toCa();
+  setLd(b, false);
   $('cbCode').textContent = 'PUBLIC';
   $('codeBadge').classList.add('on');
   $('wCd').textContent = 'PUBLIC';
-  $('wNm').textContent = roomName;
+  $('wNm').textContent = rn;
   $('sts').style.display = 'flex';
   $('wO').style.display = 'flex';
   $('ov').classList.remove('on');
   $('oN').textContent = t('overlay_waiting');
   $('oS').textContent = t('overlay_share');
-  hbStart();
-  dbg('salon public actif slot#' + idx);
   var cw = document.querySelector('.WT .code-wrap');
   if (cw) cw.style.display = 'none';
   $('wS').textContent = t('overlay_waiting');
-  toast(t('toast_room_create') + ' ' + roomName, 'ok');
-  P.on('call', hostOnCall);
-  P.on('connection', function(c) {
-    if (c.metadata && c.metadata.probe) { answerProbe(c); return; }
-    hostOnConn(c);
+  P = new Peer(MID, IC);
+  hbStart();
+  P.on('open', function() {
+    supaCreateRoom(ROOM_ID, rn, MID).then(function() {
+      dbg('salon enregistre dans annuaire: ' + ROOM_ID);
+      clearInterval(HB_TIMER);
+      HB_TIMER = setInterval(function() { supaBeat((DC && DC.open && CONNECTED_PEERS[PEER_ID]) ? 2 : 1); }, 8000);
+      toast(t('toast_room_create') + ' ' + rn, 'ok');
+    }).catch(function(e) {
+      dbg('annuaire err: ' + e.message);
+      toast(t('pub_empty'), 'err');
+    });
   });
+  P.on('call', hostOnCall);
+  P.on('connection', function(c) { continueGuestConn(c); });
   P.on('disconnected', onSigLost);
   P.on('close', function() { onDC(); });
   P.on('error', function(e) { console.error('[FU] pub host err', e.type || e); });
@@ -1885,7 +1869,7 @@ function showPub() {
     if (box0) box0.innerHTML = '<div class="pub-empty">' + t('pub_scan') + '</div>';
   }
   scanPub(false);
-  pubScanTimer = setInterval(function() { scanPub(true); }, 10000);
+  pubScanTimer = setInterval(function() { scanPub(true); }, 7000);
 }
 
 function hidePub() {
@@ -1893,22 +1877,6 @@ function hidePub() {
   clearInterval(pubScanTimer);
   pubScanTimer = null;
   pubScanGen++;
-  if (probeP) { try { probeP.destroy(); } catch(e) {} probeP = null; }
-}
-
-function ensureProbe(cb) {
-  if (probeP && !probeP.destroyed && !probeP.disconnected) { cb(); return; }
-  if (probeP) { try { probeP.destroy(); } catch(e) {} probeP = null; }
-  probeP = new Peer(gId(), peerSigOpts());
-  var opened = false;
-  probeP.on('open', function() {
-    if (opened) return;
-    opened = true;
-    cb();
-  });
-  probeP.on('disconnected', function() {
-    try { if (probeP && !probeP.destroyed) probeP.reconnect(); } catch(e) {}
-  });
 }
 
 function scanPub(soft) {
@@ -1918,39 +1886,15 @@ function scanPub(soft) {
   if (!soft && !pubEverRendered) {
     box.innerHTML = '<div class="pub-empty">' + t('pub_scan') + '</div>';
   }
-  ensureProbe(function() {
+  supaList().then(function(rows) {
     if (gen !== pubScanGen) return;
-    var results = [];
-    for (var i = 0; i < PUB_SLOTS; i++) results.push(probeSlot(i));
-    Promise.all(results).then(function(rows) {
-      if (gen !== pubScanGen) return;
-      renderPub(rows.filter(function(r) { return r.alive; }));
-    });
-  });
-}
-
-function probeSlot(idx) {
-  return new Promise(function(resolve) {
-    var out = { idx: idx, alive: false, name: '', n: 0 };
-    if (!probeP || probeP.destroyed || probeP.disconnected || !probeP.open) { resolve(out); return; }
-    var done = false;
-    var fin = function() { if (!done) { done = true; resolve(out); } };
-    setTimeout(fin, 4500);
-    var c;
-    try {
-      c = probeP.connect(PUB_PREFIX + idx, { reliable: true, serialization: 'json', metadata: { probe: true } });
-    } catch(e) { fin(); return; }
-    c.on('open', function() {
-      c.on('data', function(d) {
-        if (d && d.t === 'info') { out.alive = true; out.name = d.name || '?'; out.n = d.n || 0; out.max = d.max || 2; }
-        try { c.close(); } catch(e) {}
-        fin();
-      });
-      try { c.send({ t: 'infoq' }); } catch(e) {}
-      setTimeout(fin, 3000);
-    });
-    c.on('error', function() { fin(); });
-    c.on('close', function() { fin(); });
+    renderPub(rows.map(function(r) { return { id: r.id, name: r.name, peer_id: r.peer_id, n: r.n || 1, max: 2 }; }));
+  }).catch(function(e) {
+    dbg('liste err: ' + e.message);
+    if (!soft || !pubEverRendered) {
+      var b2 = $('pubList');
+      if (b2 && !b2.children.length) b2.innerHTML = '<div class="pub-empty">' + t('pub_empty') + '</div>';
+    }
   });
 }
 
@@ -1968,12 +1912,13 @@ function renderPub(rows) {
     div.querySelector('.pn').textContent = r.name;
     div.querySelector('.pc').textContent = r.n + '/' + (r.max || 2) + (full ? ' · ' + t('pub_full_row') : '');
     div.querySelector('.bt').textContent = t('btn_join');
-    div.querySelector('.B').onclick = function() { hidePub(); joinPublic(r.idx); };
+    div.querySelector('.B').onclick = function() { hidePub(); joinPublic(r); };
     box.appendChild(div);
   });
 }
 
-function joinPublic(idx) {
+function joinPublic(row) {
+  if (!row || !row.peer_id) { toast(t('toast_noroom'), 'err'); return; }
   if (!canRate()) { toast('Trop de tentatives, attends...', 'err'); return; }
   var b = $('bDoJoin');
   setLd(b, false);
@@ -1984,9 +1929,9 @@ function joinPublic(idx) {
   initLS();
   REMOTE_NAME = '';
   PEER_ID = '';
-  SECRET = pubSecret(idx);
-  PUB_IDX = idx;
-  REMOTE_HOST = PUB_PREFIX + idx;
+  SECRET = 'pub@' + row.id;
+  ROOM_ID = row.id;
+  REMOTE_HOST = row.peer_id;
   toCa();
   hideJoin();
   $('cbCode').textContent = 'PUBLIC';
@@ -2032,7 +1977,7 @@ function doJoin() {
     PEER_ID = '';
     SECRET = rm.toUpperCase() + '@secret';
     REMOTE_HOST = rm + '-host';
-    PUB_IDX = -1;
+    ROOM_ID = null;
     toCa();
     setLd(b, false);
     hideJoin();
@@ -2097,13 +2042,6 @@ function doDC(c) {
     try {
       if (!d || typeof d !== 'object') return;
       lastRx = Date.now();
-      if (d.t === 'infoq' && !d.type) {
-        dbg('sonde recue (data handler)');
-        replyInfo(c);
-        c._wasProbe = true;
-        if (DC === c) { DC = null; var dsel = $('dcS'); if (dsel) dsel.className = 'dcs'; }
-        return;
-      }
       if (d.type === 'auth') {
         if (d.token === SECRET) {
           if (!CONNECTED_PEERS[c.peer]) {
@@ -2136,12 +2074,11 @@ function doDC(c) {
         DC = null;
         return;
       }
-      if (d.t === 'handover' && typeof d.idx === 'number' && d.idx >= 0 && REMOTE_HOST.indexOf(PUB_PREFIX) === 0) {
-        dbg('handover recu: je prends la salle #' + d.idx);
-        toast('Salon transféré', 'ok');
-        PUB_IDX = d.idx;
+      if (d.t === 'handover' && typeof d.idx === 'string' && d.idx.length > 3 && ROOM_ID) {
+        dbg('handover recu: je prends la salle ' + d.idx);
+        ROOM_ID = d.idx;
         window.__takeName = (typeof d.nm === 'string' ? d.nm : '');
-        setTimeout(function() { startTakeOver(d.idx); }, 600);
+        setTimeout(function() { startTakeOver(); }, 600);
         return;
       }
       if (d.t === 'fm' && typeof d.id === 'string' && d.id.length < 16) { rxFileMeta(d); return; }
@@ -2277,9 +2214,9 @@ function hbLoop() {
     if (!P || P.destroyed) { hbOn = false; return; }
     try { if (DC && DC.open) DC.send({ t: 'hb' }); } catch(e) {}
     if (!host && (!DC || !DC.open) && Date.now() - lastTryData > 20000) { tryData(); }
-    if (!host && PUB_IDX >= 0 && !takingOver && Date.now() - lastRx > 15000 && (!DC || !DC.open)) {
+    if (!host && ROOM_ID && !takingOver && Date.now() - lastRx > 15000 && (!DC || !DC.open)) {
       dbg('hote disparu sans prevenir -> takeover');
-      startTakeOver(PUB_IDX);
+      startTakeOver();
     }
     if (P.disconnected && !P.destroyed && Date.now() - lastRx < 900000) {
       dbg('signaling perdu -> reconnexion auto');
@@ -2720,71 +2657,49 @@ function setQ(q) {
   toast(t('toast_quality') + ': ' + q + 'p', 'ok');
 }
 
-function startTakeOver(idx) {
-  if (takingOver || host) return;
+function startTakeOver() {
+  if (takingOver || host || !ROOM_ID) return;
   takingOver = true;
-  dbg('TAKEOVER du salon #' + idx);
+  dbg('TAKEOVER du salon ' + ROOM_ID);
   try { if (CC) CC.close(); } catch(e) {} CC = null;
   try { if (DC) DC.close(); } catch(e) {}
-  var attemptBind = function(tries) {
-    var sid = PUB_PREFIX + idx;
-    var tp;
-    var settled = false;
-    var fail = function() {
-      if (settled) return;
-      settled = true;
-      try { tp.destroy(); } catch(e) {}
-      if (tries > 0) {
-        dbg('takeover retry (' + tries + ' restants)');
-        setTimeout(function() { attemptBind(tries - 1); }, 1800);
-      } else {
-        takingOver = false;
-        toast(t('toast_noroom'), 'err');
-      }
-    };
-    try { tp = new Peer(sid, IC); } catch(e) { fail(); return; }
-    tp.on('error', function(err) {
-      if (!settled && err && err.type === 'unavailable-id') fail();
-    });
-    tp.on('open', function() {
-      if (settled) return;
-      settled = true;
-      P = tp;
-      MID = sid;
-      SECRET = pubSecret(idx);
-      PUB_IDX = idx;
-      host = true;
-      PEER_ID = '';
-      REMOTE_NAME = '';
-      CONNECTED_PEERS = {};
-      takingOver = false;
-      P.on('call', hostOnCall);
-      P.on('connection', function(cc) {
-        if (cc.metadata && cc.metadata.probe) { answerProbe(cc); return; }
-        continueGuestConn(cc);
-      });
-      P.on('disconnected', onSigLost);
-      P.on('close', function() { onDC(); });
-      P.on('error', function(e) { console.error('[FU] takeover err', e.type || e); });
-      if (window.__takeName) { $('wNm').textContent = window.__takeName; }
-      dbg('salon repris: je suis maintenant le serveur #' + idx);
-      $('wO').style.display = 'flex';
-      $('ov').classList.remove('on');
-      $('oN').textContent = t('overlay_waiting');
-      $('oS').textContent = t('overlay_share');
-      vcUpd();
-    });
-  };
-  attemptBind(5);
+  if (!P || P.destroyed) {
+    takingOver = false;
+    toast(t('toast_noroom'), 'err');
+    return;
+  }
+  host = true;
+  PEER_ID = '';
+  REMOTE_NAME = '';
+  CONNECTED_PEERS = {};
+  takingOver = false;
+  P.on('connection', function(cc) { continueGuestConn(cc); });
+  supaPatchPeer(ROOM_ID, MID, 1).then(function() {
+    dbg('annuaire mis a jour: je suis le serveur');
+    clearInterval(HB_TIMER);
+    HB_TIMER = setInterval(function() { supaBeat((DC && DC.open && CONNECTED_PEERS[PEER_ID]) ? 2 : 1); }, 8000);
+  }).catch(function(e) { dbg('patch annuaire err: ' + e.message); });
+  if (window.__takeName) { $('wNm').textContent = window.__takeName; }
+  dbg('salon repris: je suis maintenant le serveur');
+  $('wO').style.display = 'flex';
+  $('ov').classList.remove('on');
+  $('oN').textContent = t('overlay_waiting');
+  $('oS').textContent = t('overlay_share');
+  vcUpd();
 }
 
 function hangUp() {
+  var rid = ROOM_ID;
   var doTeardown = function() {
     if (CC) { CC.close(); CC = null; }
     if (P) { P.destroy(); P = null; }
     if (LS) { LS.getTracks().forEach(function(t) { t.stop(); }); LS = null; }
     if (SS) { SS.getTracks().forEach(function(t) { t.stop(); }); SS = null; }
-    PUB_IDX = -1;
+    ROOM_ID = null;
+    clearInterval(HB_TIMER);
+    HB_TIMER = null;
+    if (rid && !handedOver) supaDelete(rid);
+    handedOver = false;
     takingOver = false;
     stopT();
     if (rV) { rV.srcObject = null; rV.remove(); rV = null; }
@@ -2794,11 +2709,15 @@ function hangUp() {
     toast(t('toast_hangup'), 'ok');
   };
   // Transfert de salle: si je suis un hote public avec un invite actif, je lui passe la main
-  if (host && PUB_IDX >= 0 && DC && DC.open && CONNECTED_PEERS[PEER_ID]) {
+  var handedOver = false;
+  if (host && ROOM_ID && DC && DC.open && CONNECTED_PEERS[PEER_ID]) {
     try {
-      DC.send({ t: 'handover', idx: PUB_IDX, nm: ($('wNm').textContent || '') });
+      DC.send({ t: 'handover', idx: ROOM_ID, nm: ($('wNm').textContent || '') });
       dbg('handover envoye a ' + PEER_ID);
+      handedOver = true;
     } catch(e) {}
+    clearInterval(HB_TIMER);
+    HB_TIMER = null;
     DC = null;
     setTimeout(doTeardown, 450);
     return;
