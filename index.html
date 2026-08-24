@@ -859,7 +859,7 @@ es: {
 //  UTILITAIRES
 // ============================================================
 var lang = 'fr';
-var VER = 'v63';
+var VER = 'v64';
 var $ = function(id) { return document.getElementById(id); };
 var t = function(k) { return TR[lang] && TR[lang][k] ? TR[lang][k] : (TR['fr'][k] || k); };
 
@@ -1261,6 +1261,11 @@ function sigAcceptOffer(p) {
   sigResetDC();
   var pc = sigMakePC();
   if (!pc) return;
+  var _realClose = pc.close.bind(pc);
+  pc.close = function() {
+    dbg('!!! PC FERME MANUELLEMENT par: ' + ((new Error().stack || '').split('\n')[2] || '?').trim());
+    return _realClose();
+  };
   SIG.acceptingNew = true;
   setTimeout(function() { SIG.acceptingNew = false; }, 1200);
   SIG.dcPc = pc;
