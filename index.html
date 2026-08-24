@@ -854,7 +854,7 @@ es: {
 //  UTILITAIRES
 // ============================================================
 var lang = 'fr';
-var VER = 'v52';
+var VER = 'v53';
 var $ = function(id) { return document.getElementById(id); };
 var t = function(k) { return TR[lang] && TR[lang][k] ? TR[lang][k] : (TR['fr'][k] || k); };
 
@@ -1710,6 +1710,7 @@ async function createRoom() {
     REMOTE_NAME = '';
     PEER_ID = '';
     SECRET = rm.toUpperCase() + '@secret';
+    PUB_IDX = -1;
     toCa();
     setLd(b, false);
     $('cbCode').textContent = rm;
@@ -1740,6 +1741,8 @@ async function createRoom() {
 //  SALONS PUBLICS - emplacements fixes sondés sans serveur
 // ============================================================
 var PUB_PREFIX = 'foreverus-pub-';
+var PUB_IDX = -1;
+var takingOver = false;
 var PUB_SLOTS = 6;
 var probeP = null;
 var pubScanTimer = null;
@@ -1835,6 +1838,7 @@ function tryBindSlot(idx, roomName) {
 function adoptPublicRoom(tp, idx, roomName) {
   host = true;
   MID = PUB_PREFIX + idx;
+  PUB_IDX = idx;
   SLOT = { audio: null, video: null };
   LS = new MediaStream();
   initLS();
@@ -1980,6 +1984,7 @@ function joinPublic(idx) {
   REMOTE_NAME = '';
   PEER_ID = '';
   SECRET = pubSecret(idx);
+  PUB_IDX = idx;
   REMOTE_HOST = PUB_PREFIX + idx;
   toCa();
   hideJoin();
@@ -2026,6 +2031,7 @@ function doJoin() {
     PEER_ID = '';
     SECRET = rm.toUpperCase() + '@secret';
     REMOTE_HOST = rm + '-host';
+    PUB_IDX = -1;
     toCa();
     setLd(b, false);
     hideJoin();
@@ -2127,6 +2133,14 @@ function doDC(c) {
         toast(t('toast_full'), 'err');
         try { DC.close(); } catch(e) {}
         DC = null;
+        return;
+      }
+      if (d.t === 'handover' && typeof d.idx === 'number' && d.idx >= 0 && REMOTE_HOST.indexOf(PUB_PREFIX) === 0) {
+        dbg('handover recu: je prends la salle #' + d.idx);
+        toast('Salon transféré', 'ok');
+        PUB_IDX = d.idx;
+        window.__takeName = (typeof d.nm === 'string' ? d.nm : '');
+        setTimeout(function() { startTakeOver(d.idx); }, 600);
         return;
       }
       if (d.t === 'fm' && typeof d.id === 'string' && d.id.length < 16) { rxFileMeta(d); return; }
@@ -2262,6 +2276,10 @@ function hbLoop() {
     if (!P || P.destroyed) { hbOn = false; return; }
     try { if (DC && DC.open) DC.send({ t: 'hb' }); } catch(e) {}
     if (!host && (!DC || !DC.open) && Date.now() - lastTryData > 20000) { tryData(); }
+    if (!host && PUB_IDX >= 0 && !takingOver && Date.now() - lastRx > 15000 && (!DC || !DC.open)) {
+      dbg('hote disparu sans prevenir -> takeover');
+      startTakeOver(PUB_IDX);
+    }
     if (P.disconnected && !P.destroyed && Date.now() - lastRx < 900000) {
       dbg('signaling perdu -> reconnexion auto');
       try { P.reconnect(); } catch(e) {}
@@ -2671,17 +2689,90 @@ function setQ(q) {
   toast(t('toast_quality') + ': ' + q + 'p', 'ok');
 }
 
+function startTakeOver(idx) {
+  if (takingOver || host) return;
+  takingOver = true;
+  dbg('TAKEOVER du salon #' + idx);
+  try { if (CC) CC.close(); } catch(e) {} CC = null;
+  try { if (DC) DC.close(); } catch(e) {}
+  var attemptBind = function(tries) {
+    var sid = PUB_PREFIX + idx;
+    var tp;
+    var settled = false;
+    var fail = function() {
+      if (settled) return;
+      settled = true;
+      try { tp.destroy(); } catch(e) {}
+      if (tries > 0) {
+        dbg('takeover retry (' + tries + ' restants)');
+        setTimeout(function() { attemptBind(tries - 1); }, 1800);
+      } else {
+        takingOver = false;
+        toast(t('toast_noroom'), 'err');
+      }
+    };
+    try { tp = new Peer(sid, IC); } catch(e) { fail(); return; }
+    tp.on('error', function(err) {
+      if (!settled && err && err.type === 'unavailable-id') fail();
+    });
+    tp.on('open', function() {
+      if (settled) return;
+      settled = true;
+      P = tp;
+      MID = sid;
+      SECRET = pubSecret(idx);
+      PUB_IDX = idx;
+      host = true;
+      PEER_ID = '';
+      REMOTE_NAME = '';
+      CONNECTED_PEERS = {};
+      takingOver = false;
+      P.on('call', hostOnCall);
+      P.on('connection', function(cc) {
+        if (cc.metadata && cc.metadata.probe) { answerProbe(cc); return; }
+        continueGuestConn(cc);
+      });
+      P.on('disconnected', onSigLost);
+      P.on('close', function() { onDC(); });
+      P.on('error', function(e) { console.error('[FU] takeover err', e.type || e); });
+      if (window.__takeName) { $('wNm').textContent = window.__takeName; }
+      dbg('salon repris: je suis maintenant le serveur #' + idx);
+      $('wO').style.display = 'flex';
+      $('ov').classList.remove('on');
+      $('oN').textContent = t('overlay_waiting');
+      $('oS').textContent = t('overlay_share');
+      vcUpd();
+    });
+  };
+  attemptBind(5);
+}
+
 function hangUp() {
-  if (CC) { CC.close(); CC = null; }
-  if (P) { P.destroy(); P = null; }
-  if (LS) { LS.getTracks().forEach(function(t) { t.stop(); }); LS = null; }
-  if (SS) { SS.getTracks().forEach(function(t) { t.stop(); }); SS = null; }
-  stopT();
-  if (rV) { rV.srcObject = null; rV.remove(); rV = null; }
-  toLob();
-  $('wT').textContent = t('wait_title');
-  $('wS').textContent = t('wait_share');
-  toast(t('toast_hangup'), 'ok');
+  var doTeardown = function() {
+    if (CC) { CC.close(); CC = null; }
+    if (P) { P.destroy(); P = null; }
+    if (LS) { LS.getTracks().forEach(function(t) { t.stop(); }); LS = null; }
+    if (SS) { SS.getTracks().forEach(function(t) { t.stop(); }); SS = null; }
+    PUB_IDX = -1;
+    takingOver = false;
+    stopT();
+    if (rV) { rV.srcObject = null; rV.remove(); rV = null; }
+    toLob();
+    $('wT').textContent = t('wait_title');
+    $('wS').textContent = t('wait_share');
+    toast(t('toast_hangup'), 'ok');
+  };
+  // Transfert de salle: si je suis un hote public avec un invite actif, je lui passe la main
+  if (host && PUB_IDX >= 0 && DC && DC.open && CONNECTED_PEERS[PEER_ID]) {
+    try {
+      DC.send({ t: 'handover', idx: PUB_IDX, nm: ($('wNm').textContent || '') });
+      dbg('handover envoye a ' + PEER_ID);
+    } catch(e) {}
+    DC = null;
+    setTimeout(doTeardown, 450);
+    return;
+  }
+  doTeardown();
 }
 
 function endCall() {
