@@ -806,7 +806,7 @@ es: {
 //  UTILITAIRES
 // ============================================================
 var lang = 'fr';
-var VER = 'v43';
+var VER = 'v44';
 var $ = function(id) { return document.getElementById(id); };
 var t = function(k) { return TR[lang] && TR[lang][k] ? TR[lang][k] : (TR['fr'][k] || k); };
 
@@ -833,6 +833,7 @@ function setLang(l) {
   localStorage.setItem('iv-lang', l);
   $('langSel').classList.add('hide');
   applyT();
+  try { if (typeof __msgPending !== 'undefined' && __msgPending) { __msgPending = false; setTimeout(showMsg, 250); } } catch(e) {}
   if (loadUser()) {}
 }
 
@@ -1190,8 +1191,26 @@ function swapSlot(kind, newTrack, attempt) {
   } catch(e) { dbg('swap' + kind + ' err: ' + e.message); return false; }
 }
 
-function initLS() {
-  try {
+function lsSetSlots(aTrack, vTrack) {
+  if (!LS) LS = new MediaStream();
+  LS.getAudioTracks().forEach(function(t) { try { LS.removeTrack(t); } catch(e) {} });
+  LS.getVideoTracks().forEach(function(t) { try { LS.removeTrack(t); } catch(e) {} });
+  if (aTrack) { try { LS.addTrack(aTrack); } catch(e) {} }
+  if (vTrack) { try { LS.addTrack(vTrack); } catch(e) {} }
+  SLOT.audio = aTrack || null;
+  SLOT.video = vTrack || null;
+}
+
+function restartMedia(reason) {
+  if (!P || P.destroyed) return;
+  var tg = host ? PEER_ID : REMOTE_HOST;
+  dbg('MEDIA RESTART (' + reason + ')');
+  try { if (CC) CC.close(); } catch(e) {}
+  CC = null;
+  setTimeout(startCall, 350);
+}
+
+function initLS() {  try {
     if (SLOT.audio && SLOT.video) return;
     if (!LS) LS = new MediaStream();
     if (!SLOT.audio) {
@@ -1259,16 +1278,17 @@ function stopScrShare(silentUI) {
   if (mixCtx) { try { mixCtx.close(); } catch(e) {} mixCtx = null; }
   var vidBack = cam && camS ? camS.getVideoTracks()[0] : null;
   if (!vidBack) { camS = null; vidBack = blackTrack(); }
-  swapSlot('video', vidBack);
-  swapSlot('audio', mic && micS ? micS.getAudioTracks()[0] : silentTrack());
+  var audBack = mic && micS ? micS.getAudioTracks()[0] : silentTrack();
   scrTrack = null;
+  lsSetSlots(audBack, vidBack);
   if (!silentUI) {
+    restartMedia('fin partage');
     $('bS').className = 'b';
     $('bS').querySelector('.l').textContent = t('sb_screen');
     $('scrB').classList.remove('on');
     $('scrB').classList.remove('noaud');
     $('pip').classList.remove('scr');
-    if (cam) { $('lV').srcObject = LS; $('pipE').style.display = 'none'; }
+    if (cam) { $('lV').srcObject = new MediaStream([vidBack]); $('pipE').style.display = 'none'; }
     else { $('lV').srcObject = null; $('pipE').style.display = 'flex'; }
     sendData({ t: 'scr', on: false });
     sendData({ t: 'st', mic: mic, cam: cam, scr: scr });
@@ -1393,8 +1413,8 @@ async function reqS() {
     scr = true;
     var sv = SS.getVideoTracks()[0];
     scrTrack = sv;
-    swapSlot('video', sv);
     var sa = SS.getAudioTracks()[0] || null;
+    var audFinal = null;
     if (sa) {
       var sources = [];
       if (mic && micS && micS.getAudioTracks().length) sources.push(micS.getAudioTracks()[0]);
@@ -1402,16 +1422,18 @@ async function reqS() {
       var m = mixAudioTracks(sources);
       if (m) {
         mixCtx = m.ctx;
-        swapSlot('audio', m.track);
+        audFinal = m.track;
         dbg('mix micro+ecran OK (' + sources.length + ' src)');
       } else {
-        swapSlot('audio', sa);
+        audFinal = sa;
       }
       $('scrB').classList.remove('noaud');
     } else {
-      swapSlot('audio', silentTrack());
+      audFinal = silentTrack();
       dbg('partage sans son systeme');
     }
+    lsSetSlots(audFinal, sv);
+    restartMedia('partage ecran');
     $('bS').className = 'b on';
     $('bS').querySelector('.l').textContent = t('sb_screen_on');
     $('scrB').classList.add('on');
@@ -2369,13 +2391,17 @@ try {
   if (dv) dv.textContent = VER;
 } catch(e) {}
 
-// CHARGEMENT LANGUE
-var savedLang = localStorage.getItem('iv-lang');
-if (savedLang && TR[savedLang]) {
-  lang = savedLang;
-  $('langSel').classList.add('hide');
-}
-showMsg();
+// CHARGEMENT LANGUE - le choix de langue AVANT le message
+var __msgPending = true;
+(function() {
+  var savedLang = localStorage.getItem('iv-lang');
+  if (savedLang && TR[savedLang]) {
+    lang = savedLang;
+    $('langSel').classList.add('hide');
+    __msgPending = false;
+    setTimeout(showMsg, 350);
+  }
+})();
 
 console.log('💗 ForeverUs ' + VER + ' chargé avec succès.');
 console.log('📞 Raccourcis: M=Micro, V=Caméra, S=Écran, C=Chat, F=Plein écran, Q=Qualité');
