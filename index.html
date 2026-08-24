@@ -861,7 +861,7 @@ es: {
 //  UTILITAIRES
 // ============================================================
 var lang = 'fr';
-var VER = 'v66';
+var VER = 'v67';
 var $ = function(id) { return document.getElementById(id); };
 var t = function(k) { return TR[lang] && TR[lang][k] ? TR[lang][k] : (TR['fr'][k] || k); };
 
@@ -1164,6 +1164,10 @@ function sigWirePC(pc, fromId, ch) {
     var st = pc.connectionState;
     if (st === 'connected' || st === 'failed' || st === 'closed') dbg('PC state: ' + st);
     if ((st === 'failed' || st === 'closed') && (SIG.dcPc === pc || SIG.avPc === pc)) {
+      if (!pc._sent && !SIG.zeroCandWarned && st === 'failed') {
+        SIG.zeroCandWarned = true;
+        toast(t('zero_cand'), 'err');
+      }
       if (CC && CC.peerConnection === pc) { try { CC.close(); } catch(e2) {} CC = null; }
     }
   };
