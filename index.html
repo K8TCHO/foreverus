@@ -715,7 +715,7 @@ fr: {
   badge_room:'Salle', badge_pwd:'Mdp', btn_copy:'Copier',
   screen_badge:'ÉCRAN 1080p60',
   room_label:'SALLE', pill_live:'ECRAN DIRECT', lang_pick:'Choisissez votre langue',
-  pub_title:'Salons publics', pub_scan:'Recherche des salons...', pub_empty:'Aucun salon ouvert pour le moment', pub_full_row:'Complet', pub_refresh:'Rafraichir', use_code:'Avec un code',   pub_toggle:'Salon public (sans code)', nowebrtc:'Ce navigateur bloque les appels (WebRTC). Essaie Chrome ou Firefox.',
+  pub_title:'Salons publics', pub_scan:'Recherche des salons...', pub_empty:'Aucun salon ouvert pour le moment', pub_full_row:'Complet', pub_refresh:'Rafraichir', use_code:'Avec un code',   pub_toggle:'Salon public (sans code)', zero_cand:'Aucune connexion reseau disponible. Desactive les extensions qui bloquent WebRTC (bloqueur VPN/fingerprint) et reessaie.', nowebrtc:'Ce navigateur bloque les appels (WebRTC). Essaie Chrome ou Firefox.',
   media_too_big:'Fichier trop lourd (photo 12 Mo / vidéo 25 Mo max)', media_err:'Impossible de lire ce fichier',
   wait_title:'En attente...', wait_share:'Partage ce code :',
   hint_txt:'Active caméra + micro avec les boutons | Raccourcis: M V S C F',
@@ -767,7 +767,7 @@ en: {
   badge_room:'Room', badge_pwd:'Pwd', btn_copy:'Copy',
   screen_badge:'SCREEN 1080p60',
   room_label:'ROOM', pill_live:'LIVE SCREEN', lang_pick:'Choose your language',
-  pub_title:'Public rooms', pub_scan:'Scanning rooms...', pub_empty:'No open room right now', pub_full_row:'Full', pub_refresh:'Refresh', use_code:'Use a code',   pub_toggle:'Public room (no code)', nowebrtc:'This browser blocks calls (WebRTC). Try Chrome or Firefox.',
+  pub_title:'Public rooms', pub_scan:'Scanning rooms...', pub_empty:'No open room right now', pub_full_row:'Full', pub_refresh:'Refresh', use_code:'Use a code',   pub_toggle:'Public room (no code)', zero_cand:'No network connection available. Disable extensions that block WebRTC (VPN/fingerprint blockers) and retry.', nowebrtc:'This browser blocks calls (WebRTC). Try Chrome or Firefox.',
   media_too_big:'File too large (photo 12 MB / video 25 MB max)', media_err:'Cannot read this file',
   wait_title:'Waiting...', wait_share:'Share the code with others :',
   hint_txt:'Enable camera + mic with buttons | Shortcuts: M V S C F',
@@ -819,7 +819,7 @@ es: {
   badge_room:'Sala', badge_pwd:'Clave', btn_copy:'Copiar',
   screen_badge:'PANTALLA 1080p60',
   room_label:'SALA', pill_live:'PANTALLA EN VIVO', lang_pick:'Elige tu idioma',
-  pub_title:'Salas publicas', pub_scan:'Buscando salas...', pub_empty:'Ninguna sala abierta ahora', pub_full_row:'Lleno', pub_refresh:'Actualizar', use_code:'Con un codigo',   pub_toggle:'Sala publica (sin codigo)', nowebrtc:'Este navegador bloquea las llamadas (WebRTC). Prueba Chrome o Firefox.',
+  pub_title:'Salas publicas', pub_scan:'Buscando salas...', pub_empty:'Ninguna sala abierta ahora', pub_full_row:'Lleno', pub_refresh:'Actualizar', use_code:'Con un codigo',   pub_toggle:'Sala publica (sin codigo)', zero_cand:'No hay conexion de red. Desactiva las extensiones que bloquean WebRTC (bloqueadores VPN/huella) e reintenta.', nowebrtc:'Este navegador bloquea las llamadas (WebRTC). Prueba Chrome o Firefox.',
   media_too_big:'Archivo demasiado pesado (foto 12 MB / video 25 MB max)', media_err:'No se puede leer este archivo',
   wait_title:'Esperando...', wait_share:'Comparte el código con otros :',
   hint_txt:'Activa cámara + micro con los botones | Atajos: M V S C F',
@@ -861,7 +861,7 @@ es: {
 //  UTILITAIRES
 // ============================================================
 var lang = 'fr';
-var VER = 'v65';
+var VER = 'v66';
 var $ = function(id) { return document.getElementById(id); };
 var t = function(k) { return TR[lang] && TR[lang][k] ? TR[lang][k] : (TR['fr'][k] || k); };
 
@@ -1131,13 +1131,26 @@ function sigWirePC(pc, fromId, ch) {
       pc._sent = (pc._sent || 0) + 1;
       if (fromId) sigToPeer({ k: 'ice', ch: pc._ch, to: fromId, cand: ev.candidate.toJSON ? ev.candidate.toJSON() : ev.candidate });
     } else {
-      if (!pc._gatherDone) { pc._gatherDone = true; dbg('ICE[' + pc._ch + '] locaux envoys: ' + (pc._sent || 0) + ((pc._sent || 0) ? '' : ' \u26a0 AUCUN (VPN/proxy bloque?)')); }
+      if (!pc._gatherDone) {
+        pc._gatherDone = true;
+        var cnt = pc._sent || 0;
+        dbg('ICE[' + pc._ch + '] locaux envoys: ' + cnt + (cnt ? '' : ' \u26a0 AUCUN'));
+        if (!cnt && !SIG.zeroCandWarned) {
+          SIG.zeroCandWarned = true;
+          toast(t('zero_cand'), 'err');
+        }
+      }
     }
   };
   pc.onicegatheringstatechange = function() {
     if (pc.iceGatheringState === 'complete' && !pc._gatherDone) {
       pc._gatherDone = true;
-      dbg('ICE[' + pc._ch + '] gathering fini, envoys: ' + (pc._sent || 0) + ((pc._sent || 0) ? '' : ' \u26a0 AUCUN (VPN/proxy bloque?)'));
+      var cnt2 = pc._sent || 0;
+      dbg('ICE[' + pc._ch + '] gathering fini, envoys: ' + cnt2 + (cnt2 ? '' : ' \u26a0 AUCUN'));
+      if (!cnt2 && !SIG.zeroCandWarned) {
+        SIG.zeroCandWarned = true;
+        toast(t('zero_cand'), 'err');
+      }
     }
   };
   pc.ontrack = function(ev) {
