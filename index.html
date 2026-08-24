@@ -406,6 +406,9 @@ MN{flex:1;display:flex;overflow:hidden;position:relative}
 .m .ms{font-size:9px;margin-left:5px;opacity:.7;color:#8affb0;font-weight:700}
 .unlSnd{position:absolute;bottom:70px;left:50%;transform:translateX(-50%);z-index:17;padding:10px 16px;border:none;border-radius:999px;background:linear-gradient(135deg,#ff6eb4,#a84dff);color:#fff;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.4);animation:unlP 1.2s infinite}
 @keyframes unlP{0%,100%{box-shadow:0 4px 18px rgba(0,0,0,.4)}50%{box-shadow:0 4px 26px rgba(255,110,180,.55)}}
+.HD .st.jf{animation:jfA .55s ease-in-out 7;border-color:rgba(0,232,157,.6);box-shadow:0 0 20px rgba(0,232,157,.45)}
+.HD .st.jf .dt{background:#7dffc0;box-shadow:0 0 14px #00e89d}
+@keyframes jfA{50%{transform:scale(1.14)}}
 .chk{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--t2);font-weight:700;cursor:pointer;margin-top:-2px;user-select:none}
 .chk input{accent-color:#ff5c8a;width:15px;height:15px;cursor:pointer}
 .pub-row{display:flex;align-items:center;gap:10px;padding:11px 13px;background:rgba(255,255,255,.04);border:1px solid var(--bd);border-radius:10px;margin-bottom:8px;text-align:left}
@@ -851,7 +854,7 @@ es: {
 //  UTILITAIRES
 // ============================================================
 var lang = 'fr';
-var VER = 'v51';
+var VER = 'v52';
 var $ = function(id) { return document.getElementById(id); };
 var t = function(k) { return TR[lang] && TR[lang][k] ? TR[lang][k] : (TR['fr'][k] || k); };
 
@@ -991,6 +994,16 @@ var IC = {
   ],
   iceCandidatePoolSize: 10
 };
+// Annuaire EXPLICITE et unique pour tous (sinon geo-routing sépare les salons)
+IC.host = '0.peerjs.com';
+IC.port = 443;
+IC.path = '/';
+IC.key = 'peerjs';
+IC.secure = true;
+
+function peerSigOpts() {
+  return { host: IC.host, port: IC.port, path: IC.path, key: IC.key, secure: IC.secure, debug: 0 };
+}
 
 var VQ = {
   '1080': { width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 60 }, facingMode: 'user' },
@@ -1881,7 +1894,7 @@ function hidePub() {
 function ensureProbe(cb) {
   if (probeP && !probeP.destroyed && !probeP.disconnected) { cb(); return; }
   if (probeP) { try { probeP.destroy(); } catch(e) {} probeP = null; }
-  probeP = new Peer(gId(), { debug: 0 });
+  probeP = new Peer(gId(), peerSigOpts());
   var opened = false;
   probeP.on('open', function() {
     if (opened) return;
@@ -2092,6 +2105,18 @@ function doDC(c) {
             try { DC.send({ type: 'auth', token: SECRET }); } catch(e) {}
             try { DC.send({ t: 'me', n: (USER_NAME || 'User').substr(0, 30) }); } catch(e) {}
             toast(t('toast_connect'), 'ok');
+            try {
+              var sp = $('stP');
+              if (sp) { sp.classList.add('jf'); setTimeout(function() { sp.classList.remove('jf'); }, 4000); }
+              var ACX = window.AudioContext || window.webkitAudioContext;
+              if (ACX && !isIO) {
+                var acx = new ACX();
+                var gx = acx.createGain(); gx.gain.value = 0.07; gx.connect(acx.destination);
+                var ox = acx.createOscillator(); ox.frequency.value = 740; ox.connect(gx);
+                ox.start();
+                setTimeout(function() { try { ox.stop(); acx.close(); } catch(e2) {} }, 150);
+              }
+            } catch(eJoin) {}
           }
         } else {
           try { c.close(); } catch(e) {}
