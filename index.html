@@ -414,6 +414,18 @@ MN{flex:1;display:flex;overflow:hidden;position:relative}
 .pub-row.full{opacity:.45}
 .pub-row.full .B{pointer-events:none}
 .pub-empty{font-size:11px;color:var(--t3);padding:20px 0;text-align:center}
+.CH .in .plus{width:34px;height:34px;border-radius:50%;border:none;background:rgba(255,255,255,.06);color:var(--ac2);cursor:pointer;font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center;transition:.2s;flex-shrink:0}
+.CH .in .plus:hover{background:rgba(255,92,138,.15);transform:scale(1.08)}
+.CH .m.media{padding:5px;background:rgba(0,0,0,.25)}
+.CH .m.media img{display:block;max-width:min(240px,60vw);max-height:220px;border-radius:9px;cursor:zoom-in;object-fit:cover}
+.CH .m.media video{display:block;max-width:min(240px,60vw);max-height:220px;border-radius:9px;cursor:pointer;background:#000}
+.CH .m.media .fmeta{font-size:8px;opacity:.55;margin-top:3px;letter-spacing:.3px}
+.fprog{height:3px;background:rgba(255,255,255,.12);border-radius:2px;margin-top:5px;overflow:hidden}
+.fprog i{display:block;height:100%;width:0%;background:linear-gradient(90deg,#ff5c8a,#ffd166);transition:width .25s}
+.LBX{position:fixed;inset:0;z-index:900;display:none;align-items:center;justify-content:center;background:rgba(5,5,10,.96);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.LBX.on{display:flex}
+.LBX img,.LBX video{max-width:96vw;max-height:88dvh;border-radius:10px;object-fit:contain}
+.LBX .x{position:absolute;top:14px;right:14px;width:42px;height:42px;border-radius:50%;border:1px solid var(--bd2);background:rgba(20,20,36,.9);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 </style>
 </head>
 <body>
@@ -607,9 +619,14 @@ MN{flex:1;display:flex;overflow:hidden;position:relative}
       <div class="hd"><h3 data-i18n="chat_title">Chat prive</h3><span class="dcs" id="dcS"></span><button class="x" onclick="togCh()">&#10005;</button></div>
       <div class="msgs" id="cMs"><div class="m sys" data-i18n="chat_title">Conversation privee</div></div>
       <div class="in">
+        <button class="plus" id="bPlus" onclick="pickMedia()" title="Photo / Video">+</button>
         <input id="cI" data-i18n-ph="chat_placeholder" placeholder="Ecrire..." onkeydown="if(event.key==='Enter')sendM()">
         <button onclick="sendM()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
       </div>
+      <input type="file" id="fileIn" accept="image/*,video/*" style="display:none">
+    </div>
+
+    <div class="LBX" id="lbx"><button class="x" onclick="closeLbx()">&#10005;</button><div id="lbxC"></div></div>
     </div>
 
     <div class="SB" id="sb">
@@ -690,6 +707,7 @@ fr: {
   screen_badge:'ÉCRAN 1080p60',
   room_label:'SALLE', pill_live:'ECRAN DIRECT', lang_pick:'Choisissez votre langue',
   pub_title:'Salons publics', pub_scan:'Recherche des salons...', pub_empty:'Aucun salon ouvert pour le moment', pub_full_row:'Complet', pub_refresh:'Rafraichir', use_code:'Avec un code', pub_toggle:'Salon public (sans code)',
+  media_too_big:'Fichier trop lourd (photo 12 Mo / vidéo 25 Mo max)', media_err:'Impossible de lire ce fichier',
   wait_title:'En attente...', wait_share:'Partage ce code :',
   hint_txt:'Active caméra + micro avec les boutons | Raccourcis: M V S C F',
   code_label:'CODE DE SALLE', code_hint:'Clique le code pour copier',
@@ -741,6 +759,7 @@ en: {
   screen_badge:'SCREEN 1080p60',
   room_label:'ROOM', pill_live:'LIVE SCREEN', lang_pick:'Choose your language',
   pub_title:'Public rooms', pub_scan:'Scanning rooms...', pub_empty:'No open room right now', pub_full_row:'Full', pub_refresh:'Refresh', use_code:'Use a code', pub_toggle:'Public room (no code)',
+  media_too_big:'File too large (photo 12 MB / video 25 MB max)', media_err:'Cannot read this file',
   wait_title:'Waiting...', wait_share:'Share the code with others :',
   hint_txt:'Enable camera + mic with buttons | Shortcuts: M V S C F',
   code_label:'ROOM CODE', code_hint:'Click code to copy',
@@ -792,6 +811,7 @@ es: {
   screen_badge:'PANTALLA 1080p60',
   room_label:'SALA', pill_live:'PANTALLA EN VIVO', lang_pick:'Elige tu idioma',
   pub_title:'Salas publicas', pub_scan:'Buscando salas...', pub_empty:'Ninguna sala abierta ahora', pub_full_row:'Lleno', pub_refresh:'Actualizar', use_code:'Con un codigo', pub_toggle:'Sala publica (sin codigo)',
+  media_too_big:'Archivo demasiado pesado (foto 12 MB / video 25 MB max)', media_err:'No se puede leer este archivo',
   wait_title:'Esperando...', wait_share:'Comparte el código con otros :',
   hint_txt:'Activa cámara + micro con los botones | Atajos: M V S C F',
   code_label:'CÓDIGO DE SALA', code_hint:'Clic para copiar',
@@ -832,7 +852,7 @@ es: {
 //  UTILITAIRES
 // ============================================================
 var lang = 'fr';
-var VER = 'v47';
+var VER = 'v48';
 var $ = function(id) { return document.getElementById(id); };
 var t = function(k) { return TR[lang] && TR[lang][k] ? TR[lang][k] : (TR['fr'][k] || k); };
 
@@ -1094,6 +1114,182 @@ function addM(txt, type, name, mid) {
       if (el) el.textContent = '✓';
     }, 3000);
   }
+}
+
+// ============================================================
+//  MÉDIAS DANS LE CHAT - photo/vidéo par DataChannel
+// ============================================================
+var RXF = {};
+
+function b64FromBuf(buf) {
+  var u = new Uint8Array(buf), s = '', CH = 32768;
+  for (var i = 0; i < u.length; i += CH) s += String.fromCharCode.apply(null, u.subarray(i, Math.min(i + CH, u.length)));
+  return btoa(s);
+}
+function bufFromB64(b64) {
+  var s = atob(b64), u = new Uint8Array(s.length);
+  for (var i = 0; i < s.length; i++) u[i] = s.charCodeAt(i);
+  return u.buffer;
+}
+function fmtSize(n) { return n > 1048576 ? (n / 1048576).toFixed(1) + ' Mo' : Math.round(n / 1024) + ' Ko'; }
+
+function pickMedia() {
+  if (!DC || !DC.open) { toast(t('toast_nochan'), 'err'); return; }
+  $('fileIn').value = '';
+  $('fileIn').click();
+}
+
+async function handleFilePicked(ev) {
+  var f = ev.target.files && ev.target.files[0];
+  if (!f) return;
+  if (!DC || !DC.open) { toast(t('toast_nochan'), 'err'); return; }
+  var kind = f.type.indexOf('video') === 0 ? 'vid' : 'img';
+  if (kind === 'img' && f.size > 12 * 1048576) { toast(t('media_too_big'), 'err'); return; }
+  if (kind === 'vid' && f.size > 25 * 1048576) { toast(t('media_too_big'), 'err'); return; }
+  dbg('media choisi: ' + f.type + ' ' + fmtSize(f.size));
+  try {
+    var blob = f;
+    if (kind === 'img') blob = await compressImage(f);
+    sendFile(blob, kind, f.name || ('photo.' + (blob.type === 'image/png' ? 'png' : 'jpg')));
+  } catch(e) { dbg('media err: ' + e.message); toast(t('media_err'), 'err'); }
+}
+
+function compressImage(f) {
+  return new Promise(function(resolve) {
+    try {
+      var img = new Image();
+      var url = URL.createObjectURL(f);
+      img.onload = function() {
+        try {
+          var MAX = 1280, w = img.width, h = img.height;
+          if (w > MAX || h > MAX) { var r = Math.min(MAX / w, MAX / h); w = Math.round(w * r); h = Math.round(h * r); }
+          var cv = document.createElement('canvas');
+          cv.width = w; cv.height = h;
+          cv.getContext('2d').drawImage(img, 0, 0, w, h);
+          URL.revokeObjectURL(url);
+          cv.toBlob(function(b) { resolve(b && b.size < f.size ? b : f); }, 'image/jpeg', 0.82);
+        } catch(e) { resolve(f); }
+      };
+      img.onerror = function() { URL.revokeObjectURL(url); resolve(f); };
+      img.src = url;
+    } catch(e) { resolve(f); }
+  });
+}
+
+function mediaBubble(id, kind, label, sent, size) {
+  var container = $('cMs');
+  var div = document.createElement('div');
+  div.className = 'm media ' + (sent ? 'sent' : 'recv');
+  div.setAttribute('data-fid', id);
+  div.innerHTML = '<div class="fph" style="font-size:11px;opacity:.7;padding:8px"></div><div class="fprog"><i></i></div><div class="fmeta"></div>';
+  div.querySelector('.fph').textContent = (kind === 'vid' ? '\uD83C\uDFAC ' : '\uD83D\uDDBC ') + label;
+  div.querySelector('.fmeta').textContent = fmtSize(size || 0) + ' · 0%';
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+  return div;
+}
+
+function mediaSetProgress(el, pct) {
+  if (!el) return;
+  var bar = el.querySelector('.fprog i');
+  if (bar) bar.style.width = Math.min(100, Math.round(pct)) + '%';
+  var meta = el.querySelector('.fmeta');
+  if (meta) meta.textContent = meta.textContent.replace(/\d+%$/, Math.min(100, Math.round(pct)) + '%');
+}
+
+function sendFile(blob, kind, name) {
+  var id = 'f' + cryR(8);
+  var size = blob.size;
+  var el = mediaBubble(id, kind, name, true, size);
+  sendData({ t: 'fm', id: id, k: kind, n: String(name).substr(0, 40), z: size });
+  blob.arrayBuffer().then(function(buf) {
+    var u = new Uint8Array(buf), total = u.length, off = 0, seq = 0, CHUNK = 8000;
+    var pump = function() {
+      while (off < total && DC && DC.open && DC.bufferedAmount < 1048576) {
+        var end = Math.min(off + CHUNK, total);
+        var slice = u.subarray(off, end);
+        var payload = { t: 'fc', id: id, q: seq++, d: b64FromBuf(slice) };
+        DC.send(payload);
+        off = end;
+      }
+      mediaSetProgress(el, (off / total) * 100);
+      if (off >= total) {
+        try { DC.send({ t: 'fe', id: id }); } catch(e) {}
+        mediaDoneLocal(el, blob, kind);
+      } else if (DC && DC.open) {
+        setTimeout(pump, 40);
+      } else {
+        toast(t('toast_nochan'), 'err');
+      }
+    };
+    pump();
+  }).catch(function(e) { dbg('read err: ' + e.message); });
+}
+
+function mediaDoneLocal(el, blob, kind) {
+  var ph = el.querySelector('.fph'), bar = el.querySelector('.fprog');
+  if (bar) bar.remove();
+  attachPreview(el, URL.createObjectURL(blob), kind, ph);
+}
+
+function attachPreview(el, url, kind, ph) {
+  var node;
+  if (kind === 'vid') {
+    node = document.createElement('video');
+    node.controls = true; node.playsInline = true; node.src = url;
+    node.onclick = function(e) { e.stopPropagation(); openLbx(url, 'vid'); };
+  } else {
+    node = document.createElement('img');
+    node.src = url; node.alt = '';
+    node.onclick = function(e) { e.stopPropagation(); openLbx(url, 'img'); };
+  }
+  if (ph && ph.parentNode === el) el.replaceChild(node, ph); else el.insertBefore(node, el.firstChild.nextSibling || null);
+}
+
+function openLbx(url, kind) {
+  var c = $('lbxC');
+  c.innerHTML = '';
+  var node = document.createElement(kind === 'vid' ? 'video' : 'img');
+  if (kind === 'vid') { node.controls = true; node.autoplay = true; }
+  node.src = url;
+  c.appendChild(node);
+  $('lbx').classList.add('on');
+}
+function closeLbx() { var v = $('lbxC').firstChild; if (v && v.pause) try { v.pause(); } catch(e) {} $('lbx').classList.remove('on'); $('lbxC').innerHTML = ''; }
+
+function rxFileMeta(d) {
+  RXF[d.id] = { kind: d.k, name: d.n, size: d.z || 0, parts: [], got: 0 };
+  RXF[d.id].el = mediaBubble(d.id, d.k, d.n, false, d.z);
+}
+
+function rxFileChunk(d) {
+  var st = RXF[d.id];
+  if (!st) return;
+  var u = new Uint8Array(bufFromB64(d.d));
+  st.parts.push(u);
+  st.got += u.byteLength;
+  mediaSetProgress(st.el, st.size ? (st.got / st.size) * 100 : 50);
+}
+
+function rxFileEnd(d) {
+  var st = RXF[d.id];
+  if (!st) return;
+  var total = 0;
+  st.parts.forEach(function(p) { total += p.byteLength; });
+  var out = new Uint8Array(total), o = 0;
+  st.parts.forEach(function(p) { out.set(p, o); o += p.byteLength; });
+  var mime = st.kind === 'vid' ? 'video/webm' : 'image/jpeg';
+  var blob = new Blob([out], { type: mime });
+  if (st.size && total !== st.size) dbg('media ATTENTION taille ' + total + ' != ' + st.size);
+  dbg('media recu ' + d.id + ' ' + total + ' octets');
+  var bar = st.el.querySelector('.fprog');
+  if (bar) bar.remove();
+  var ph = st.el.querySelector('.fph');
+  var url = URL.createObjectURL(blob);
+  attachPreview(st.el, url, st.kind, ph);
+  var meta = st.el.querySelector('.fmeta');
+  if (meta) meta.textContent = st.name + ' · ' + fmtSize(total);
+  delete RXF[d.id];
 }
 
 function togCh(forceOff) {
@@ -1873,6 +2069,9 @@ function doDC(c) {
         DC = null;
         return;
       }
+      if (d.t === 'fm' && typeof d.id === 'string' && d.id.length < 16) { rxFileMeta(d); return; }
+      if (d.t === 'fc' && typeof d.id === 'string' && typeof d.d === 'string' && typeof d.q === 'number') { rxFileChunk(d); return; }
+      if (d.t === 'fe' && typeof d.id === 'string') { rxFileEnd(d); return; }
       if (d.t === 'me' && typeof d.n === 'string' && d.n.length > 0 && d.n.length < 30) {
         if (REMOTE_NAME !== d.n) {
           REMOTE_NAME = d.n;
@@ -2612,6 +2811,15 @@ document.addEventListener('keydown', function(e) {
     t0 = n;
     nTaps++;
     if (nTaps >= 3) { nTaps = 0; tapVer(); }
+  });
+})();
+
+// MÉDIAS CHAT: branchement input fichier + Escape lightbox
+(function() {
+  var fi = $('fileIn');
+  if (fi) fi.addEventListener('change', handleFilePicked);
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && $('lbx').classList.contains('on')) closeLbx();
   });
 })();
 
