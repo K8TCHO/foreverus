@@ -832,7 +832,7 @@ es: {
 //  UTILITAIRES
 // ============================================================
 var lang = 'fr';
-var VER = 'v46';
+var VER = 'v47';
 var $ = function(id) { return document.getElementById(id); };
 var t = function(k) { return TR[lang] && TR[lang][k] ? TR[lang][k] : (TR['fr'][k] || k); };
 
@@ -1640,6 +1640,9 @@ function adoptPublicRoom(tp, idx, roomName) {
   $('oS').textContent = t('overlay_share');
   hbStart();
   dbg('salon public actif slot#' + idx);
+  var cw = document.querySelector('.WT .code-wrap');
+  if (cw) cw.style.display = 'none';
+  $('wS').textContent = t('overlay_waiting');
   toast(t('toast_room_create') + ' ' + roomName, 'ok');
   P.on('call', hostOnCall);
   P.on('connection', function(c) {
@@ -1832,11 +1835,12 @@ function doDC(c) {
     if (dcRetryTimer) { clearTimeout(dcRetryTimer); dcRetryTimer = null; }
     dbg('DC open!');
     c.send({ type: 'auth', token: SECRET });
+    try { c.send({ t: 'me', n: (USER_NAME || 'User').substr(0, 30) }); } catch(e) {}
     flushQ();
     if (ds) ds.className = 'dcs on';
     $('wO').style.display = 'none';
     $('ov').classList.add('on');
-    $('oN').textContent = REMOTE_NAME || USER_NAME || 'User';
+    $('oN').textContent = REMOTE_NAME || 'User';
     $('oS').textContent = t('connected');
     $('stP').className = 'st on';
     $('stT').textContent = t('status_on');
@@ -1855,6 +1859,7 @@ function doDC(c) {
             CONNECTED_PEERS[c.peer] = true;
             flushQ();
             try { DC.send({ type: 'auth', token: SECRET }); } catch(e) {}
+            try { DC.send({ t: 'me', n: (USER_NAME || 'User').substr(0, 30) }); } catch(e) {}
             toast(t('toast_connect'), 'ok');
           }
         } else {
@@ -1866,6 +1871,16 @@ function doDC(c) {
         toast(t('toast_full'), 'err');
         try { DC.close(); } catch(e) {}
         DC = null;
+        return;
+      }
+      if (d.t === 'me' && typeof d.n === 'string' && d.n.length > 0 && d.n.length < 30) {
+        if (REMOTE_NAME !== d.n) {
+          REMOTE_NAME = d.n;
+          dbg('nom correspondant: ' + REMOTE_NAME);
+          var oNel = $('oN');
+          if (oNel) oNel.textContent = REMOTE_NAME;
+          vcUpd();
+        }
         return;
       }
       if (d.t === 'chat' && typeof d.m === 'string' && d.m.length <= 500 && typeof d.n === 'string' && d.n.length < 30) {
@@ -2131,7 +2146,7 @@ function onR(s) {
     }
   }
   pillUp();
-  $('oN').textContent = REMOTE_NAME || USER_NAME || 'User';
+  $('oN').textContent = REMOTE_NAME || 'User';
   $('oS').textContent = t('connected');
   $('stP').className = 'st on';
   $('stT').textContent = t('status_on');
@@ -2282,6 +2297,8 @@ function togFS() {
 function toCa() {
   $('lob').style.display = 'none';
   $('ca').classList.add('on');
+  var cw = document.querySelector('.WT .code-wrap');
+  if (cw) cw.style.display = '';
 }
 
 function toLob() {
