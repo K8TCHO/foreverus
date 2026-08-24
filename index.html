@@ -713,7 +713,7 @@ fr: {
   badge_room:'Salle', badge_pwd:'Mdp', btn_copy:'Copier',
   screen_badge:'ÉCRAN 1080p60',
   room_label:'SALLE', pill_live:'ECRAN DIRECT', lang_pick:'Choisissez votre langue',
-  pub_title:'Salons publics', pub_scan:'Recherche des salons...', pub_empty:'Aucun salon ouvert pour le moment', pub_full_row:'Complet', pub_refresh:'Rafraichir', use_code:'Avec un code', pub_toggle:'Salon public (sans code)',
+  pub_title:'Salons publics', pub_scan:'Recherche des salons...', pub_empty:'Aucun salon ouvert pour le moment', pub_full_row:'Complet', pub_refresh:'Rafraichir', use_code:'Avec un code',   pub_toggle:'Salon public (sans code)', nowebrtc:'Ce navigateur bloque les appels (WebRTC). Essaie Chrome ou Firefox.',
   media_too_big:'Fichier trop lourd (photo 12 Mo / vidéo 25 Mo max)', media_err:'Impossible de lire ce fichier',
   wait_title:'En attente...', wait_share:'Partage ce code :',
   hint_txt:'Active caméra + micro avec les boutons | Raccourcis: M V S C F',
@@ -765,7 +765,7 @@ en: {
   badge_room:'Room', badge_pwd:'Pwd', btn_copy:'Copy',
   screen_badge:'SCREEN 1080p60',
   room_label:'ROOM', pill_live:'LIVE SCREEN', lang_pick:'Choose your language',
-  pub_title:'Public rooms', pub_scan:'Scanning rooms...', pub_empty:'No open room right now', pub_full_row:'Full', pub_refresh:'Refresh', use_code:'Use a code', pub_toggle:'Public room (no code)',
+  pub_title:'Public rooms', pub_scan:'Scanning rooms...', pub_empty:'No open room right now', pub_full_row:'Full', pub_refresh:'Refresh', use_code:'Use a code',   pub_toggle:'Public room (no code)', nowebrtc:'This browser blocks calls (WebRTC). Try Chrome or Firefox.',
   media_too_big:'File too large (photo 12 MB / video 25 MB max)', media_err:'Cannot read this file',
   wait_title:'Waiting...', wait_share:'Share the code with others :',
   hint_txt:'Enable camera + mic with buttons | Shortcuts: M V S C F',
@@ -817,7 +817,7 @@ es: {
   badge_room:'Sala', badge_pwd:'Clave', btn_copy:'Copiar',
   screen_badge:'PANTALLA 1080p60',
   room_label:'SALA', pill_live:'PANTALLA EN VIVO', lang_pick:'Elige tu idioma',
-  pub_title:'Salas publicas', pub_scan:'Buscando salas...', pub_empty:'Ninguna sala abierta ahora', pub_full_row:'Lleno', pub_refresh:'Actualizar', use_code:'Con un codigo', pub_toggle:'Sala publica (sin codigo)',
+  pub_title:'Salas publicas', pub_scan:'Buscando salas...', pub_empty:'Ninguna sala abierta ahora', pub_full_row:'Lleno', pub_refresh:'Actualizar', use_code:'Con un codigo',   pub_toggle:'Sala publica (sin codigo)', nowebrtc:'Este navegador bloquea las llamadas (WebRTC). Prueba Chrome o Firefox.',
   media_too_big:'Archivo demasiado pesado (foto 12 MB / video 25 MB max)', media_err:'No se puede leer este archivo',
   wait_title:'Esperando...', wait_share:'Comparte el código con otros :',
   hint_txt:'Activa cámara + micro con los botones | Atajos: M V S C F',
@@ -859,7 +859,7 @@ es: {
 //  UTILITAIRES
 // ============================================================
 var lang = 'fr';
-var VER = 'v58';
+var VER = 'v59';
 var $ = function(id) { return document.getElementById(id); };
 var t = function(k) { return TR[lang] && TR[lang][k] ? TR[lang][k] : (TR['fr'][k] || k); };
 
@@ -1108,6 +1108,15 @@ function sigOpen(chanName, myId) {
 }
 
 function sigMakePC() {
+  if (typeof RTCPeerConnection === 'undefined' || !RTCPeerConnection) {
+    if (!SIG.nowebrtc) {
+      SIG.nowebrtc = true;
+      SIG.attempts = 999;
+      toast(t('nowebrtc'), 'err');
+      dbg('WebRTC absent (navigateur?)');
+    }
+    return null;
+  }
   return new RTCPeerConnection({ iceServers: IC.iceServers, iceCandidatePoolSize: 10 });
 }
 function sigAddLocalTracks(pc) {
@@ -1187,6 +1196,7 @@ function sigAcceptOffer(p) {
   dbg('SIG: offre recue de ' + p.from);
   sigResetMedia();
   var pc = sigMakePC();
+  if (!pc) return;
   SIG.pc = pc;
   SIG.role = 'host';
   SIG.target = p.from;
@@ -1253,6 +1263,7 @@ function sigEnsureConnected() {
   sigResetMedia();
   SIG.role = 'guest';
   var pc = sigMakePC();
+  if (!pc) return;
   SIG.pc = pc;
   sigWirePC(pc, SIG.target);
   var rtc = pc.createDataChannel('dc');
