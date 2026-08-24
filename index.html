@@ -859,7 +859,7 @@ es: {
 //  UTILITAIRES
 // ============================================================
 var lang = 'fr';
-var VER = 'v61';
+var VER = 'v62';
 var $ = function(id) { return document.getElementById(id); };
 var t = function(k) { return TR[lang] && TR[lang][k] ? TR[lang][k] : (TR['fr'][k] || k); };
 
@@ -1136,23 +1136,21 @@ function sigWirePC(pc, fromId) {
   pc.onconnectionstatechange = function() {
     var st = pc.connectionState;
     if (st === 'connected' || st === 'failed' || st === 'closed') dbg('PC state: ' + st);
-    if ((st === 'failed' || st === 'closed') && SIG.pc === pc) {
+    if ((st === 'failed' || st === 'closed') && (SIG.dcPc === pc || SIG.avPc === pc)) {
       if (CC && CC.peerConnection === pc) { try { CC.close(); } catch(e2) {} CC = null; }
     }
   };
 }
 function sigTeardownAll() {
   SIG.closing = true;
-  try { if (SIG.pc) SIG.pc.close(); } catch(e) {}
-  SIG.pc = null; SIG.dcWrap = null; SIG.cc = null;
-  try { if (SIG.ws) SIG.ws.close(); } catch(e) {}
-  SIG.ws = null; SIG.wsOpen = false; SIG.joined = false;
+  try { if (SIG.dcPc) SIG.dcPc.close(); } catch(e) {}
+  try { if (SIG.avPc) SIG.avPc.close(); } catch(e) {}
+  SIG.dcPc = null; SIG.dcWrap = null; SIG.avPc = null; SIG.cc = null;
   clearInterval(SIG.hbT);
 }
-function sigResetMedia() {
-  SIG.attempts = 0;
-  try { if (SIG.pc) SIG.pc.close(); } catch(e) {}
-  SIG.pc = null;
+function sigResetDC() {
+  try { if (SIG.dcPc) SIG.dcPc.close(); } catch(e) {}
+  SIG.dcPc = null;
   if (SIG.dcWrap) { SIG.dcWrap._dead = true; }
   SIG.dcWrap = null;
 }
@@ -1192,21 +1190,68 @@ function sigMakeCC(pc) {
   return cc;
 }
 
+function sigPeerAddr() { return SIG.target || PEER_ID || ''; }
+
+function sigEnsureAV() {
+  if (!SIG.joined) return;
+  var peer = sigPeerAddr();
+  if (!peer) { dbg('AV: pas encore de correspondant'); return; }
+  try { if (SIG.avPc) SIG.avPc.close(); } catch(e) {}
+  var pc = sigMakePC();
+  if (!pc) return;
+  SIG.avPc = pc;
+  sigWirePC(pc, peer, 'av');
+  sigAddLocalTracks(pc);
+  var cc = sigMakeCC(pc);
+  SIG.cc = cc;
+  CC = cc;
+  wireCall(cc);
+  pc.createOffer().then(function(off) {
+    return pc.setLocalDescription(off);
+  }).then(function() {
+    sigToPeer({ k: 'offer', ch: 'av', sdp: pc.localDescription.sdp });
+    dbg('AV: offre envoyee');
+  }).catch(function(e) { dbg('AV offer err: ' + e.message); });
+}
+
+function sigAcceptAVOffer(p) {
+  dbg('SIG: offre MEDIA recue de ' + p.from);
+  try { if (SIG.avPc) SIG.avPc.close(); } catch(e) {}
+  var pc = sigMakePC();
+  if (!pc) return;
+  SIG.avPc = pc;
+  sigWirePC(pc, p.from, 'av');
+  sigAddLocalTracks(pc);
+  var cc = sigMakeCC(pc);
+  SIG.cc = cc;
+  CC = cc;
+  wireCall(cc);
+  var sd = new RTCSessionDescription({ type: 'offer', sdp: p.sdp });
+  pc.setRemoteDescription(sd).then(function() {
+    return pc.createAnswer();
+  }).then(function(ans) {
+    return pc.setLocalDescription(ans);
+  }).then(function() {
+    sigToPeer({ k: 'answer', ch: 'av', to: p.from, sdp: pc.localDescription.sdp });
+    if (pc._pend) { pc._pend.forEach(function(c) { try { pc.addIceCandidate(new RTCIceCandidate(c)); } catch(e) {} }); pc._pend = []; }
+  }).catch(function(e) { dbg('AV accept err: ' + e.message); });
+}
+
 function sigAcceptOffer(p) {
   var nowT = Date.now();
-  if (SIG.lastOfferFrom === p.from && SIG.lastOfferAt && nowT - SIG.lastOfferAt < 5000 && SIG.pc && !SIG.acceptingNew) {
+  if (SIG.lastOfferFrom === p.from && SIG.lastOfferAt && nowT - SIG.lastOfferAt < 5000 && SIG.dcPc && !SIG.acceptingNew) {
     dbg('offre dupliquee de ' + p.from + ': ignoree');
     return;
   }
   SIG.lastOfferFrom = p.from;
   SIG.lastOfferAt = nowT;
   dbg('SIG: offre recue de ' + p.from);
-  sigResetMedia();
+  sigResetDC();
   var pc = sigMakePC();
   if (!pc) return;
   SIG.acceptingNew = true;
   setTimeout(function() { SIG.acceptingNew = false; }, 1200);
-  SIG.pc = pc;
+  SIG.dcPc = pc;
   SIG.role = 'host';
   SIG.target = p.from;
   sigAddLocalTracks(pc);
@@ -1233,6 +1278,7 @@ function sigOnSignal(p) {
   if (!p || !p.k) return;
   if (p.k === 'offer') {
     if (p.from === SIG.myId) return;
+    if (p.ch === 'av') { sigAcceptAVOffer(p); return; }
     var partnerActive = DC && DC.open && CONNECTED_PEERS[PEER_ID];
     if (partnerActive && PEER_ID && p.from !== PEER_ID) {
       sigBroadcast({ k: 'busy', from: SIG.myId, to: p.from });
@@ -1242,18 +1288,30 @@ function sigOnSignal(p) {
     return;
   }
   if (p.k === 'answer') {
-    if (!SIG.pc || SIG.role !== 'guest') return;
+    var apc = (p.ch === 'av') ? SIG.avPc : null;
+    if (p.ch === 'av') {
+      if (!apc) return;
+      var sd2 = new RTCSessionDescription({ type: 'answer', sdp: p.sdp });
+      apc.setRemoteDescription(sd2).then(function() {
+        if (apc._pend) { apc._pend.forEach(function(c) { try { apc.addIceCandidate(new RTCIceCandidate(c)); } catch(e) {} }); apc._pend = []; }
+        dbg('AV: connecte (negociation ok)');
+      }).catch(function(e) { dbg('AV remote err: ' + e.message); });
+      return;
+    }
+    if (!SIG.dcPc || SIG.role !== 'guest') return;
     var sd = new RTCSessionDescription({ type: 'answer', sdp: p.sdp });
-    SIG.pc.setRemoteDescription(sd).then(function() {
-      SIG.pendingIce.forEach(function(c) { try { SIG.pc.addIceCandidate(c); } catch(e) {} });
+    SIG.dcPc.setRemoteDescription(sd).then(function() {
+      SIG.pendingIce.forEach(function(c) { try { SIG.dcPc.addIceCandidate(c); } catch(e) {} });
       SIG.pendingIce = [];
     }).catch(function(e) { dbg('SIG remote err: ' + e.message); });
     return;
   }
   if (p.k === 'ice') {
-    if (!SIG.pc || !p.cand) return;
-    if (!SIG.pc.remoteDescription || !SIG.pc.remoteDescription.type) { SIG.pendingIce.push(p.cand); return; }
-    try { SIG.pc.addIceCandidate(new RTCIceCandidate(p.cand)); } catch(e) {}
+    var targetPc = (p.ch === 'av') ? SIG.avPc : SIG.dcPc;
+    if (!targetPc || !p.cand) return;
+    if (!targetPc.remoteDescription || !targetPc.remoteDescription.type) { targetPc._pend = targetPc._pend || []; targetPc._pend.push(p.cand); return; }
+    targetPc._got = (targetPc._got || 0) + 1;
+    try { targetPc.addIceCandidate(new RTCIceCandidate(p.cand)); } catch(e) {}
     return;
   }
   if (p.k === 'busy') {
@@ -1265,16 +1323,16 @@ function sigOnSignal(p) {
 
 function sigEnsureConnected() {
   if (host || !SIG.joined) return;
-  if (SIG.pc && SIG.pc.connectionState !== 'failed' && SIG.pc.connectionState !== 'closed') return;
+  if (SIG.dcPc && SIG.dcPc.connectionState !== 'failed' && SIG.dcPc.connectionState !== 'closed') return;
   if (SIG.offerSentAt && Date.now() - SIG.offerSentAt < 8000) { dbg('offre deja en vol, patiente'); return; }
   if (SIG.attempts >= 6) { dbg('SIG: abandon apres 6 essais'); return; }
   SIG.attempts++;
   dbg('SIG: tentative connexion media #' + SIG.attempts);
-  sigResetMedia();
+  sigResetDC();
   SIG.role = 'guest';
   var pc = sigMakePC();
   if (!pc) return;
-  SIG.pc = pc;
+  SIG.dcPc = pc;
   sigWirePC(pc, SIG.target);
   var rtc = pc.createDataChannel('dc');
   var wrap = new DcWrap(rtc, SIG.target);
@@ -1723,13 +1781,8 @@ function lsSetSlots(aTrack, vTrack) {
 }
 
 function restartMedia(reason) {
-  dbg('MEDIA SYNC (' + reason + ')');
-  if (!SIG.pc || SIG.pc.connectionState !== 'connected') return;
-  ['audio', 'video'].forEach(function(k) {
-    var sd = senderFor(k);
-    var tk = SLOT[k];
-    if (sd && tk) { try { sd.replaceTrack(tk); dbg('sync' + k + ' OK'); } catch(e) { dbg('sync' + k + ' err: ' + e.message); } }
-  });
+  dbg('MEDIA REBUILD (' + reason + ')');
+  sigEnsureAV();
 }
 
 function initLS() {  try {
@@ -2225,6 +2278,7 @@ function doDC(c) {
             try { DC.send({ type: 'auth', token: SECRET }); } catch(e) {}
             try { DC.send({ t: 'me', n: (USER_NAME || 'User').substr(0, 30) }); } catch(e) {}
             toast(t('toast_connect'), 'ok');
+            if (!host) { setTimeout(function() { sigEnsureAV(); }, 400); }
             try {
               var sp = $('stP');
               if (sp) { sp.classList.add('jf'); setTimeout(function() { sp.classList.remove('jf'); }, 4000); }
